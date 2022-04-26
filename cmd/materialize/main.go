@@ -14,6 +14,12 @@
 
 package main
 
-func main() {
+import (
+	materialize "github.com/conduitio/conduit-connector-materialize"
+	"github.com/conduitio/conduit-connector-materialize/destination"
+	sdk "github.com/conduitio/conduit-connector-sdk"
+)
 
+func main() {
+	sdk.Serve(materialize.Specification, nil, destination.NewDestination)
 }
