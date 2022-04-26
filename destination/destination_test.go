@@ -41,7 +41,7 @@ func TestDestination_Configure(t *testing.T) {
 		t.Fatalf("failed to parse the Configuration: %v", err)
 	}
 
-	if !reflect.DeepEqual(destination.Config, expectedConfiguration) {
-		t.Fatalf("expected destination.Config to be %v, got %v", expectedConfiguration, destination.Config)
+	if !reflect.DeepEqual(destination.config, expectedConfiguration) {
+		t.Fatalf("expected destination.Config to be %v, got %v", expectedConfiguration, destination.config)
 	}
 }

@@ -25,7 +25,7 @@ import (
 type Destination struct {
 	sdk.UnimplementedDestination
 
-	Config config.Config
+	config config.Config
 }
 
 // NewDestination creates new instance of the Destination.
@@ -40,7 +40,7 @@ func (d *Destination) Configure(ctx context.Context, cfg map[string]string) erro
 		return err
 	}
 
-	d.Config = configuration
+	d.config = configuration
 
 	return nil
 }
