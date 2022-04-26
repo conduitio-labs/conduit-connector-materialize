@@ -54,13 +54,25 @@ func configWithout(keys ...string) map[string]string {
 
 func Test_URL(t *testing.T) {
 	t.Run("Successful", func(t *testing.T) {
-		c, err := Parse(configWith("url", "some-value"))
+		c, err := Parse(configWith("url", "postgres://materialize@localhost:6875/materialize?sslmode=disable"))
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
-		if c.URL != "some-value" {
-			t.Fatalf("expected URL to be %q, got %q", "some-value", c.URL)
+		if c.URL != "postgres://materialize@localhost:6875/materialize?sslmode=disable" {
+			t.Fatalf("expected URL to be %q, got %q", "postgres://materialize@localhost:6875/materialize?sslmode=disable", c.URL)
+		}
+	})
+
+	t.Run("Not a valid URL", func(t *testing.T) {
+		_, err := Parse(configWith("url", "some-value"))
+		if err == nil {
+			t.Fatal("expected error, got nothing")
+		}
+
+		expectedErrMsg := `"url" config value must be a valid url`
+		if err.Error() != expectedErrMsg {
+			t.Fatalf("expected error msg to be %q, got %q", expectedErrMsg, err.Error())
 		}
 	})
 
@@ -89,13 +101,15 @@ func Test_Table(t *testing.T) {
 		}
 	})
 
-	t.Run("Missing", func(t *testing.T) {
-		_, err := Parse(configWithout("table"))
+	t.Run("Length is too long", func(t *testing.T) {
+		_, err := Parse(configWith("table",
+			"a_very_long_identifier_name_that_does_not_fit_within_the_limits_of_a_database",
+		))
 		if err == nil {
 			t.Fatal("expected error, got nothing")
 		}
 
-		expectedErrMsg := `"table" config value must be set`
+		expectedErrMsg := `"table" config value is too long`
 		if err.Error() != expectedErrMsg {
 			t.Fatalf("expected error msg to be %q, got %q", expectedErrMsg, err.Error())
 		}
@@ -114,13 +128,15 @@ func Test_Key(t *testing.T) {
 		}
 	})
 
-	t.Run("Missing", func(t *testing.T) {
-		_, err := Parse(configWithout("key"))
+	t.Run("Length is too long", func(t *testing.T) {
+		_, err := Parse(configWith("key",
+			"a_very_long_identifier_name_that_does_not_fit_within_the_limits_of_a_database",
+		))
 		if err == nil {
 			t.Fatal("expected error, got nothing")
 		}
 
-		expectedErrMsg := `"key" config value must be set`
+		expectedErrMsg := `"key" config value is too long`
 		if err.Error() != expectedErrMsg {
 			t.Fatalf("expected error msg to be %q, got %q", expectedErrMsg, err.Error())
 		}
