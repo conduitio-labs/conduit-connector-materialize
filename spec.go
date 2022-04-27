@@ -36,12 +36,12 @@ func Specification() sdk.Specification {
 			},
 			config.ConfigKeyTable: {
 				Default:     "",
-				Required:    true,
+				Required:    false,
 				Description: "The table name of the table in Materialize that the connector should write to.",
 			},
 			config.ConfigKeyKey: {
 				Default:     "",
-				Required:    true,
+				Required:    false,
 				Description: "The column name used when updating and deleting records.",
 			},
 		},
