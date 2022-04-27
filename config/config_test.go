@@ -14,131 +14,106 @@
 
 package config
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
-var exampleConfig = map[string]string{
-	"url":   "postgres://materialize@localhost:6875/materialize?sslmode=disable",
-	"table": "footable",
-	"key":   "id",
-}
-
-func configWith(pairs ...string) map[string]string {
-	cfg := make(map[string]string)
-
-	for key, value := range exampleConfig {
-		cfg[key] = value
+func TestParse(t *testing.T) {
+	tests := []struct {
+		name        string
+		cfg         map[string]string
+		want        Config
+		wantErr     bool
+		expectedErr string
+	}{
+		{
+			name: "successfull, all fields",
+			cfg: map[string]string{
+				"url":   "postgres://materialize@localhost:6875/materialize?sslmode=disable",
+				"table": "footable",
+				"key":   "id",
+			},
+			want: Config{
+				URL:   "postgres://materialize@localhost:6875/materialize?sslmode=disable",
+				Table: "footable",
+				Key:   "id",
+			},
+			wantErr: false,
+		},
+		{
+			name: "successfull, only url",
+			cfg: map[string]string{
+				"url": "postgres://materialize@localhost:6875/materialize?sslmode=disable",
+			},
+			want: Config{
+				URL: "postgres://materialize@localhost:6875/materialize?sslmode=disable",
+			},
+			wantErr: false,
+		},
+		{
+			name: "missing url",
+			cfg: map[string]string{
+				"table": "footable",
+				"key":   "id",
+			},
+			want:        Config{},
+			wantErr:     true,
+			expectedErr: "\"url\" config value must be set",
+		},
+		{
+			name: "invalid url",
+			cfg: map[string]string{
+				"url":   "not a url",
+				"table": "footable",
+				"key":   "id",
+			},
+			want:        Config{},
+			wantErr:     true,
+			expectedErr: "\"url\" config value must be a valid url",
+		},
+		{
+			name: "table name is too long",
+			cfg: map[string]string{
+				"url":   "postgres://materialize@localhost:6875/materialize?sslmode=disable",
+				"table": "a_very_long_identifier_name_that_does_not_fit_within_the_limits_of_a_database",
+				"key":   "id",
+			},
+			want:        Config{},
+			wantErr:     true,
+			expectedErr: "\"table\" config value is too long",
+		},
+		{
+			name: "key name is too long",
+			cfg: map[string]string{
+				"url":   "postgres://materialize@localhost:6875/materialize?sslmode=disable",
+				"table": "footable",
+				"key":   "a_very_long_identifier_name_that_does_not_fit_within_the_limits_of_a_database",
+			},
+			want:        Config{},
+			wantErr:     true,
+			expectedErr: "\"key\" config value is too long",
+		},
 	}
 
-	for i := 0; i < len(pairs); i += 2 {
-		key := pairs[i]
-		value := pairs[i+1]
-		cfg[key] = value
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := Parse(tt.cfg)
+			if err != nil {
+				if !tt.wantErr {
+					t.Errorf("parse error = \"%s\", wantErr %t", err.Error(), tt.wantErr)
+					return
+				}
+
+				if err.Error() != tt.expectedErr {
+					t.Errorf("expected error \"%s\", got \"%s\"", tt.expectedErr, err.Error())
+					return
+				}
+			}
+
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("parse = %v, want %v", got, tt.want)
+			}
+		})
 	}
-
-	return cfg
-}
-
-func configWithout(keys ...string) map[string]string {
-	cfg := make(map[string]string)
-
-	for key, value := range exampleConfig {
-		cfg[key] = value
-	}
-
-	for _, key := range keys {
-		delete(cfg, key)
-	}
-
-	return cfg
-}
-
-func Test_URL(t *testing.T) {
-	t.Run("Successful", func(t *testing.T) {
-		c, err := Parse(configWith("url", "postgres://materialize@localhost:6875/materialize?sslmode=disable"))
-		if err != nil {
-			t.Fatalf("expected no error, got %v", err)
-		}
-
-		if c.URL != "postgres://materialize@localhost:6875/materialize?sslmode=disable" {
-			t.Fatalf("expected URL to be %q, got %q", "postgres://materialize@localhost:6875/materialize?sslmode=disable", c.URL)
-		}
-	})
-
-	t.Run("Not a valid URL", func(t *testing.T) {
-		_, err := Parse(configWith("url", "some-value"))
-		if err == nil {
-			t.Fatal("expected error, got nothing")
-		}
-
-		expectedErrMsg := `"url" config value must be a valid url`
-		if err.Error() != expectedErrMsg {
-			t.Fatalf("expected error msg to be %q, got %q", expectedErrMsg, err.Error())
-		}
-	})
-
-	t.Run("Missing", func(t *testing.T) {
-		_, err := Parse(configWithout("url"))
-		if err == nil {
-			t.Fatal("expected error, got nothing")
-		}
-
-		expectedErrMsg := `"url" config value must be set`
-		if err.Error() != expectedErrMsg {
-			t.Fatalf("expected error msg to be %q, got %q", expectedErrMsg, err.Error())
-		}
-	})
-}
-
-func Test_Table(t *testing.T) {
-	t.Run("Successful", func(t *testing.T) {
-		c, err := Parse(configWith("table", "some-value"))
-		if err != nil {
-			t.Fatalf("expected no error, got %v", err)
-		}
-
-		if c.Table != "some-value" {
-			t.Fatalf("expected Table to be %q, got %q", "some-value", c.Table)
-		}
-	})
-
-	t.Run("Length is too long", func(t *testing.T) {
-		_, err := Parse(configWith("table",
-			"a_very_long_identifier_name_that_does_not_fit_within_the_limits_of_a_database",
-		))
-		if err == nil {
-			t.Fatal("expected error, got nothing")
-		}
-
-		expectedErrMsg := `"table" config value is too long`
-		if err.Error() != expectedErrMsg {
-			t.Fatalf("expected error msg to be %q, got %q", expectedErrMsg, err.Error())
-		}
-	})
-}
-
-func Test_Key(t *testing.T) {
-	t.Run("Successful", func(t *testing.T) {
-		c, err := Parse(configWith("key", "some-value"))
-		if err != nil {
-			t.Fatalf("expected no error, got %v", err)
-		}
-
-		if c.Key != "some-value" {
-			t.Fatalf("expected Key to be %q, got %q", "some-value", c.Key)
-		}
-	})
-
-	t.Run("Length is too long", func(t *testing.T) {
-		_, err := Parse(configWith("key",
-			"a_very_long_identifier_name_that_does_not_fit_within_the_limits_of_a_database",
-		))
-		if err == nil {
-			t.Fatal("expected error, got nothing")
-		}
-
-		expectedErrMsg := `"key" config value is too long`
-		if err.Error() != expectedErrMsg {
-			t.Fatalf("expected error msg to be %q, got %q", expectedErrMsg, err.Error())
-		}
-	})
 }
