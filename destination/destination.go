@@ -13,3 +13,49 @@
 // limitations under the License.
 
 package destination
+
+import (
+	"context"
+
+	"github.com/conduitio/conduit-connector-materialize/config"
+	sdk "github.com/conduitio/conduit-connector-sdk"
+)
+
+// Destination Materialize Connector persists records to an Materialize database.
+type Destination struct {
+	sdk.UnimplementedDestination
+
+	config config.Config
+}
+
+// NewDestination creates new instance of the Destination.
+func NewDestination() sdk.Destination {
+	return &Destination{}
+}
+
+// Configure parses and initializes the config.
+func (d *Destination) Configure(ctx context.Context, cfg map[string]string) error {
+	configuration, err := config.Parse(cfg)
+	if err != nil {
+		return err
+	}
+
+	d.config = configuration
+
+	return nil
+}
+
+// Open makes sure everything is prepared to receive records.
+func (d *Destination) Open(ctx context.Context) error {
+	return nil
+}
+
+// Write writes a record into a Destination.
+func (d *Destination) Write(ctx context.Context, record sdk.Record) error {
+	return nil
+}
+
+// Teardown gracefully close connections.
+func (d *Destination) Teardown(ctx context.Context) error {
+	return nil
+}

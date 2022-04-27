@@ -13,3 +13,36 @@
 // limitations under the License.
 
 package config
+
+const (
+	// ConfigKeyURL is the config name for a connection URL.
+	ConfigKeyURL = "url"
+	// ConfigKeyTable is the config name for a table.
+	ConfigKeyTable = "table"
+	// ConfigKeyKey is the config name for a key.
+	ConfigKeyKey = "key"
+)
+
+// Config represents configuration needed for Materialize.
+type Config struct {
+	URL string `validate:"required,url"`
+	// The maximum identifier length is 63.
+	// See https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS.
+	Table string `validate:"max=63"`
+	Key   string `validate:"max=63"`
+}
+
+// Parse attempts to parse plugins.Config into a Config struct
+func Parse(cfg map[string]string) (Config, error) {
+	config := Config{
+		URL:   cfg[ConfigKeyURL],
+		Table: cfg[ConfigKeyTable],
+		Key:   cfg[ConfigKeyKey],
+	}
+
+	if err := config.Validate(); err != nil {
+		return Config{}, err
+	}
+
+	return config, nil
+}
