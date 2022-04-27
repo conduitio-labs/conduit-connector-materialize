@@ -19,12 +19,14 @@ import (
 
 	"github.com/conduitio/conduit-connector-materialize/config"
 	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/jackc/pgx/v4"
 )
 
 // Destination Materialize Connector persists records to an Materialize database.
 type Destination struct {
 	sdk.UnimplementedDestination
 
+	conn   *pgx.Conn
 	config config.Config
 }
 
@@ -47,6 +49,13 @@ func (d *Destination) Configure(ctx context.Context, cfg map[string]string) erro
 
 // Open makes sure everything is prepared to receive records.
 func (d *Destination) Open(ctx context.Context) error {
+	conn, err := pgx.Connect(ctx, d.config.URL)
+	if err != nil {
+		return err
+	}
+
+	d.conn = conn
+
 	return nil
 }
 
@@ -57,5 +66,9 @@ func (d *Destination) Write(ctx context.Context, record sdk.Record) error {
 
 // Teardown gracefully close connections.
 func (d *Destination) Teardown(ctx context.Context) error {
+	if d.conn != nil {
+		return d.conn.Close(ctx)
+	}
+
 	return nil
 }
