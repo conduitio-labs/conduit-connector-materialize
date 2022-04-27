@@ -32,7 +32,7 @@ type Config struct {
 	Key   string `validate:"max=63"`
 }
 
-// Parse attempts to parse plugins.Config into a Config struct
+// Parse attempts to parse a provided map[string]string into a Config struct.
 func Parse(cfg map[string]string) (Config, error) {
 	config := Config{
 		URL:   cfg[ConfigKeyURL],

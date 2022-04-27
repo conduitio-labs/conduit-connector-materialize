@@ -102,11 +102,13 @@ func TestParse(t *testing.T) {
 			if err != nil {
 				if !tt.wantErr {
 					t.Errorf("parse error = \"%s\", wantErr %t", err.Error(), tt.wantErr)
+
 					return
 				}
 
 				if err.Error() != tt.expectedErr {
 					t.Errorf("expected error \"%s\", got \"%s\"", tt.expectedErr, err.Error())
+
 					return
 				}
 			}
