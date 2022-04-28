@@ -26,7 +26,7 @@ import (
 )
 
 // Postgres/Materialize requires use of a different variable placeholder.
-var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+var psqlQueryFormatter = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 const (
 	// metadata related.
@@ -100,7 +100,7 @@ func (d *Destination) insert(ctx context.Context, record sdk.Record) error {
 
 	colArgs, valArgs := d.extractColumnsAndValues(payload)
 
-	query, args, err := psql.
+	query, args, err := psqlQueryFormatter.
 		Insert(tableName).
 		Columns(colArgs...).
 		Values(valArgs...).
