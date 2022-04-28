@@ -66,6 +66,7 @@ func registerTranslations(validate *validator.Validate, uniTranslator ut.Transla
 		return ut.Add("required", "\"{0}\" config value must be set", true)
 	}, func(ut ut.Translator, fe validator.FieldError) string {
 		t, _ := ut.T("required", fe.Field())
+
 		return strings.ToLower(t)
 	})
 	if err != nil {
@@ -77,6 +78,7 @@ func registerTranslations(validate *validator.Validate, uniTranslator ut.Transla
 		return ut.Add("url", "\"{0}\" config value must be a valid url", true)
 	}, func(ut ut.Translator, fe validator.FieldError) string {
 		t, _ := ut.T("url", fe.Field())
+
 		return strings.ToLower(t)
 	})
 	if err != nil {
@@ -88,6 +90,7 @@ func registerTranslations(validate *validator.Validate, uniTranslator ut.Transla
 		return ut.Add("max", "\"{0}\" config value is too long", true)
 	}, func(ut ut.Translator, fe validator.FieldError) string {
 		t, _ := ut.T("max", fe.Field())
+
 		return strings.ToLower(t)
 	})
 	if err != nil {

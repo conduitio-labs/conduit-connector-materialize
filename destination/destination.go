@@ -16,15 +16,32 @@ package destination
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/conduitio/conduit-connector-materialize/config"
 	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/jackc/pgx/v4"
+)
+
+// Postgres/Materialize requires use of a different variable placeholder.
+var psqlQueryFormatter = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+const (
+	// metadata related.
+	metadataTable  = "table"
+	metadataAction = "action"
+
+	// action names.
+	actionInsert = "insert"
 )
 
 // Destination Materialize Connector persists records to an Materialize database.
 type Destination struct {
 	sdk.UnimplementedDestination
 
+	conn   *pgx.Conn
 	config config.Config
 }
 
@@ -37,7 +54,7 @@ func NewDestination() sdk.Destination {
 func (d *Destination) Configure(ctx context.Context, cfg map[string]string) error {
 	configuration, err := config.Parse(cfg)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse config: %w", err)
 	}
 
 	d.config = configuration
@@ -47,15 +64,105 @@ func (d *Destination) Configure(ctx context.Context, cfg map[string]string) erro
 
 // Open makes sure everything is prepared to receive records.
 func (d *Destination) Open(ctx context.Context) error {
+	conn, err := pgx.Connect(ctx, d.config.URL)
+	if err != nil {
+		return fmt.Errorf("failed to connect to materialize: %w", err)
+	}
+
+	d.conn = conn
+
 	return nil
 }
 
 // Write writes a record into a Destination.
 func (d *Destination) Write(ctx context.Context, record sdk.Record) error {
+	action, ok := record.Metadata[metadataAction]
+	if !ok {
+		return d.insert(ctx, record)
+	}
+
+	switch action {
+	case actionInsert:
+		return d.insert(ctx, record)
+	default:
+		return nil
+	}
+}
+
+// insert is an append-only operation that doesn't care about keys.
+func (d *Destination) insert(ctx context.Context, record sdk.Record) error {
+	tableName := d.getTableName(record.Metadata)
+
+	payload, err := d.structurizeData(record.Payload)
+	if err != nil {
+		return fmt.Errorf("failed to get payload: %w", err)
+	}
+
+	colArgs, valArgs := d.extractColumnsAndValues(payload)
+
+	query, args, err := psqlQueryFormatter.
+		Insert(tableName).
+		Columns(colArgs...).
+		Values(valArgs...).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("error formating query: %w", err)
+	}
+
+	_, err = d.conn.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("failed to exec insert: %w", err)
+	}
+
 	return nil
 }
 
-// Teardown gracefully close connections.
+// extractColumnsAndValues turns the payload into slices of
+// columns and values for upserting into Materialize.
+func (d *Destination) extractColumnsAndValues(payload sdk.StructuredData) ([]string, []any) {
+	var (
+		colArgs []string
+		valArgs []any
+	)
+
+	for field, value := range payload {
+		colArgs = append(colArgs, field)
+		valArgs = append(valArgs, value)
+	}
+
+	return colArgs, valArgs
+}
+
+// structurizeData converts sdk.Data to sdk.StructuredData.
+func (d *Destination) structurizeData(data sdk.Data) (sdk.StructuredData, error) {
+	if data == nil || len(data.Bytes()) == 0 {
+		return sdk.StructuredData{}, nil
+	}
+
+	structuredData := make(sdk.StructuredData)
+	err := json.Unmarshal(data.Bytes(), &structuredData)
+	if err != nil {
+		return nil, fmt.Errorf("faile to unmarshal data into structured data: %w", err)
+	}
+
+	return structuredData, nil
+}
+
+// getTableName returns either the records metadata value for table or the default configured value for table.
+func (d *Destination) getTableName(metadata map[string]string) string {
+	tableName, ok := metadata[metadataTable]
+	if !ok {
+		return d.config.Table
+	}
+
+	return tableName
+}
+
+// Teardown gracefully closes connections.
 func (d *Destination) Teardown(ctx context.Context) error {
+	if d.conn != nil {
+		return d.conn.Close(ctx)
+	}
+
 	return nil
 }
