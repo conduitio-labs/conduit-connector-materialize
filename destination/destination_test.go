@@ -294,7 +294,7 @@ func TestDestination_Write(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "should return nil, action delete, value for a key is not found",
+			name: "should return err, action delete, value for a key is not found",
 			fields: fields{
 				conn: conn,
 				config: config.Config{
@@ -312,10 +312,10 @@ func TestDestination_Write(t *testing.T) {
 					},
 				},
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
-			name: "should return err, unknown key",
+			name: "should return err, unknown key, action delete",
 			fields: fields{
 				conn: conn,
 				config: config.Config{
@@ -332,6 +332,57 @@ func TestDestination_Write(t *testing.T) {
 					},
 					Key: sdk.StructuredData{
 						"unknown": 3,
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "should update, action update",
+			fields: fields{
+				conn: conn,
+				config: config.Config{
+					URL:   dsn,
+					Table: "users",
+					Key:   "id",
+				},
+			},
+			args: args{
+				ctx: context.Background(),
+				record: sdk.Record{
+					Position: sdk.Position("999"),
+					Metadata: map[string]string{
+						"action": "update",
+					},
+					Key: sdk.StructuredData{
+						"id": 2,
+					},
+					Payload: sdk.StructuredData{
+						"name": "Alex",
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "should return error, empty payload",
+			fields: fields{
+				conn: conn,
+				config: config.Config{
+					URL:   dsn,
+					Table: "users",
+					Key:   "id",
+				},
+			},
+			args: args{
+				ctx: context.Background(),
+				record: sdk.Record{
+					Position: sdk.Position("999"),
+					Metadata: map[string]string{
+						"action": "update",
+					},
+					Key: sdk.StructuredData{
+						"id": 4,
 					},
 				},
 			},
