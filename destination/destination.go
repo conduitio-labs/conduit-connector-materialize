@@ -17,6 +17,7 @@ package destination
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
@@ -35,6 +36,7 @@ const (
 
 	// action names.
 	actionInsert = "insert"
+	actionDelete = "delete"
 )
 
 // Destination Materialize Connector persists records to an Materialize database.
@@ -84,6 +86,8 @@ func (d *Destination) Write(ctx context.Context, record sdk.Record) error {
 	switch action {
 	case actionInsert:
 		return d.insert(ctx, record)
+	case actionDelete:
+		return d.delete(ctx, record)
 	default:
 		return nil
 	}
@@ -112,6 +116,45 @@ func (d *Destination) insert(ctx context.Context, record sdk.Record) error {
 	_, err = d.conn.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("failed to exec insert: %w", err)
+	}
+
+	return nil
+}
+
+// delete deletes records by a key. First it looks in the sdk.Record.Key,
+// if it doesn't find a key there it will use the default configured value for a key.
+//
+// Note that Materialize doesn't support primary keys and unique constraints,
+// so if there are duplicate keys in Materialize the connector will delete them all.
+func (d *Destination) delete(ctx context.Context, record sdk.Record) error {
+	tableName := d.getTableName(record.Metadata)
+
+	key, err := d.structurizeData(record.Key)
+	if err != nil {
+		return fmt.Errorf("failed to get key: %w", err)
+	}
+
+	keyColumnName, err := d.getKeyColumnName(key)
+	if err != nil {
+		return fmt.Errorf("failed to get key column name: %w", err)
+	}
+
+	// do nothing if we didn't find a value for the key
+	if _, ok := key[keyColumnName]; !ok {
+		return nil
+	}
+
+	query, args, err := psql.
+		Delete(tableName).
+		Where(sq.Eq{keyColumnName: key[keyColumnName]}).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("error formating query: %w", err)
+	}
+
+	_, err = d.conn.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("failed to exec delete: %w", err)
 	}
 
 	return nil
@@ -148,7 +191,8 @@ func (d *Destination) structurizeData(data sdk.Data) (sdk.StructuredData, error)
 	return structuredData, nil
 }
 
-// getTableName returns either the records metadata value for table or the default configured value for table.
+// getTableName returns either the records metadata value for table
+// or the default configured value for table.
 func (d *Destination) getTableName(metadata map[string]string) string {
 	tableName, ok := metadata[metadataTable]
 	if !ok {
@@ -156,6 +200,20 @@ func (d *Destination) getTableName(metadata map[string]string) string {
 	}
 
 	return tableName
+}
+
+// getKeyColumnName returns either the first key within the Key structured data
+// or the default key configured value for key.
+func (d *Destination) getKeyColumnName(key sdk.StructuredData) (string, error) {
+	if len(key) > 1 {
+		return "", errors.New("composite keys not yet supported")
+	}
+
+	for k := range key {
+		return k, nil
+	}
+
+	return d.config.Key, nil
 }
 
 // Teardown gracefully closes connections.
