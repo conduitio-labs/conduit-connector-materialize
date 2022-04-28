@@ -17,7 +17,6 @@ package destination
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
@@ -92,10 +91,7 @@ func (d *Destination) Write(ctx context.Context, record sdk.Record) error {
 
 // insert is an append-only operation that doesn't care about keys.
 func (d *Destination) insert(ctx context.Context, record sdk.Record) error {
-	tableName, err := d.getTableName(record.Metadata)
-	if err != nil {
-		return fmt.Errorf("failed to get table name: %w", err)
-	}
+	tableName := d.getTableName(record.Metadata)
 
 	payload, err := d.structurizeData(record.Payload)
 	if err != nil {
@@ -152,20 +148,14 @@ func (d *Destination) structurizeData(data sdk.Data) (sdk.StructuredData, error)
 	return structuredData, nil
 }
 
-// getTableName returns either the records metadata value for table or the default configured
-// value for table. Otherwise it will error since we require some table to be
-// set to write into.
-func (d *Destination) getTableName(metadata map[string]string) (string, error) {
+// getTableName returns either the records metadata value for table or the default configured value for table.
+func (d *Destination) getTableName(metadata map[string]string) string {
 	tableName, ok := metadata[metadataTable]
 	if !ok {
-		if d.config.Table == "" {
-			return "", errors.New("no table provided for default writes")
-		}
-
-		return d.config.Table, nil
+		return d.config.Table
 	}
 
-	return tableName, nil
+	return tableName
 }
 
 // Teardown gracefully closes connections.
