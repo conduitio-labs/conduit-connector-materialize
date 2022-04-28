@@ -14,6 +14,6 @@ This connector allows you to move data from any [Conduit Source](https://www.con
 
 | name                      | description                                                                                                                         | required | default                |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------- | ---------------------- |
-| `url`                     | The connection URL for Materialize instance. database.                                                                                        | true     |                        |
+| `url`                     | The connection URL for Materialize instance.                                                                                        | true     |                        |
 | `table`                   | The table name of the table in Materialize that the connector should write to, by default.                                                                   | true     |                        |
 | `key`                     | The column name used when updating and deleting records.                                                                         | true    |  |
