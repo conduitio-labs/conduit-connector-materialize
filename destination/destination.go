@@ -54,7 +54,7 @@ func NewDestination() sdk.Destination {
 func (d *Destination) Configure(ctx context.Context, cfg map[string]string) error {
 	configuration, err := config.Parse(cfg)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse config: %w", err)
 	}
 
 	d.config = configuration
@@ -66,7 +66,7 @@ func (d *Destination) Configure(ctx context.Context, cfg map[string]string) erro
 func (d *Destination) Open(ctx context.Context) error {
 	conn, err := pgx.Connect(ctx, d.config.URL)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to connect to materialize: %w", err)
 	}
 
 	d.conn = conn
