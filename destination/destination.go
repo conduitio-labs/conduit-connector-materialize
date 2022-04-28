@@ -124,8 +124,10 @@ func (d *Destination) insert(ctx context.Context, record sdk.Record) error {
 // extractColumnsAndValues turns the payload into slices of
 // columns and values for upserting into Materialize.
 func (d *Destination) extractColumnsAndValues(payload sdk.StructuredData) ([]string, []any) {
-	var colArgs []string
-	var valArgs []any
+	var (
+		colArgs []string
+		valArgs []any
+	)
 
 	for field, value := range payload {
 		colArgs = append(colArgs, field)
