@@ -3,8 +3,8 @@ module github.com/conduitio/conduit-connector-materialize
 go 1.18
 
 require (
-	github.com/Masterminds/squirrel v1.5.2
 	github.com/conduitio/conduit-connector-sdk v0.2.0
+	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/go-playground/locales v0.14.0
 	github.com/go-playground/universal-translator v0.18.0
 	github.com/go-playground/validator/v10 v10.10.1
@@ -28,8 +28,6 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/pgtype v1.11.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
-	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
-	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect

@@ -20,14 +20,11 @@ import (
 	"errors"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/conduitio/conduit-connector-materialize/config"
 	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v4"
 )
-
-// Postgres/Materialize requires use of a different variable placeholder.
-var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 const (
 	// metadata related.
@@ -36,7 +33,17 @@ const (
 
 	// action names.
 	actionInsert = "insert"
+	actionUpdate = "update"
 	actionDelete = "delete"
+)
+
+var (
+	// ErrEmptyPayload occurs when a provided payload is empty.
+	ErrEmptyPayload = errors.New("payload cannot be empty")
+	// ErrEmptyKey occurs when there is no value for key.
+	ErrEmptyKey = errors.New("key value must be provided")
+	// ErrCompositeKeysNotSupported occurs when there are more than one key in a Key map.
+	ErrCompositeKeysNotSupported = errors.New("composite keys not yet supported")
 )
 
 // Destination Materialize Connector persists records to an Materialize database.
@@ -86,10 +93,12 @@ func (d *Destination) Write(ctx context.Context, record sdk.Record) error {
 	switch action {
 	case actionInsert:
 		return d.insert(ctx, record)
+	case actionUpdate:
+		return d.update(ctx, record)
 	case actionDelete:
 		return d.delete(ctx, record)
 	default:
-		return nil
+		return d.insert(ctx, record)
 	}
 }
 
@@ -102,13 +111,18 @@ func (d *Destination) insert(ctx context.Context, record sdk.Record) error {
 		return fmt.Errorf("failed to get payload: %w", err)
 	}
 
+	// if payload is empty we don't need to insert anything
+	if payload == nil {
+		return ErrEmptyPayload
+	}
+
 	colArgs, valArgs := d.extractColumnsAndValues(payload)
 
-	query, args, err := psql.
+	query, args, err := goqu.
 		Insert(tableName).
-		Columns(colArgs...).
-		Values(valArgs...).
-		ToSql()
+		Cols(colArgs...).
+		Vals(valArgs).
+		ToSQL()
 	if err != nil {
 		return fmt.Errorf("error formating query: %w", err)
 	}
@@ -116,6 +130,58 @@ func (d *Destination) insert(ctx context.Context, record sdk.Record) error {
 	_, err = d.conn.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("failed to exec insert: %w", err)
+	}
+
+	return nil
+}
+
+// update updates records by a key.
+//
+// Note that Materialize doesn't support primary keys and unique constraints,
+// so if there are duplicate keys in Materialize the connector will update all of them.
+func (d *Destination) update(ctx context.Context, record sdk.Record) error {
+	tableName := d.getTableName(record.Metadata)
+
+	key, err := d.structurizeData(record.Key)
+	if err != nil {
+		return fmt.Errorf("failed to get key: %w", err)
+	}
+
+	keyColumnName, err := d.getKeyColumnName(key)
+	if err != nil {
+		return fmt.Errorf("failed to get key column name: %w", err)
+	}
+
+	// do nothing if we didn't find a value for the key
+	if _, ok := key[keyColumnName]; !ok {
+		return ErrEmptyKey
+	}
+
+	payload, err := d.structurizeData(record.Payload)
+	if err != nil {
+		return fmt.Errorf("failed to get payload: %w", err)
+	}
+
+	// if payload is empty we don't need to insert anything
+	if payload == nil {
+		return ErrEmptyPayload
+	}
+
+	// remove key from the payload, we will use the key inside a WHERE clause.
+	delete(payload, keyColumnName)
+
+	query, args, err := goqu.
+		Update(tableName).
+		Set(payload).
+		Where(goqu.Ex{keyColumnName: key[keyColumnName]}).
+		ToSQL()
+	if err != nil {
+		return fmt.Errorf("error formating query: %w", err)
+	}
+
+	_, err = d.conn.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("failed to exec update: %w", err)
 	}
 
 	return nil
@@ -141,13 +207,13 @@ func (d *Destination) delete(ctx context.Context, record sdk.Record) error {
 
 	// do nothing if we didn't find a value for the key
 	if _, ok := key[keyColumnName]; !ok {
-		return nil
+		return ErrEmptyKey
 	}
 
-	query, args, err := psql.
+	query, args, err := goqu.
 		Delete(tableName).
-		Where(sq.Eq{keyColumnName: key[keyColumnName]}).
-		ToSql()
+		Where(goqu.Ex{keyColumnName: key[keyColumnName]}).
+		ToSQL()
 	if err != nil {
 		return fmt.Errorf("error formating query: %w", err)
 	}
@@ -162,11 +228,8 @@ func (d *Destination) delete(ctx context.Context, record sdk.Record) error {
 
 // extractColumnsAndValues turns the payload into slices of
 // columns and values for upserting into Materialize.
-func (d *Destination) extractColumnsAndValues(payload sdk.StructuredData) ([]string, []any) {
-	var (
-		colArgs []string
-		valArgs []any
-	)
+func (d *Destination) extractColumnsAndValues(payload sdk.StructuredData) ([]any, []any) {
+	var colArgs, valArgs []any
 
 	for field, value := range payload {
 		colArgs = append(colArgs, field)
@@ -179,13 +242,13 @@ func (d *Destination) extractColumnsAndValues(payload sdk.StructuredData) ([]str
 // structurizeData converts sdk.Data to sdk.StructuredData.
 func (d *Destination) structurizeData(data sdk.Data) (sdk.StructuredData, error) {
 	if data == nil || len(data.Bytes()) == 0 {
-		return sdk.StructuredData{}, nil
+		return nil, nil
 	}
 
 	structuredData := make(sdk.StructuredData)
 	err := json.Unmarshal(data.Bytes(), &structuredData)
 	if err != nil {
-		return nil, fmt.Errorf("faile to unmarshal data into structured data: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal data into structured data: %w", err)
 	}
 
 	return structuredData, nil
@@ -206,7 +269,7 @@ func (d *Destination) getTableName(metadata map[string]string) string {
 // or the default key configured value for key.
 func (d *Destination) getKeyColumnName(key sdk.StructuredData) (string, error) {
 	if len(key) > 1 {
-		return "", errors.New("composite keys not yet supported")
+		return "", ErrCompositeKeysNotSupported
 	}
 
 	for k := range key {
