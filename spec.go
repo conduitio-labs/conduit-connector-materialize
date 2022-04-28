@@ -13,3 +13,37 @@
 // limitations under the License.
 
 package materialize
+
+import (
+	"github.com/conduitio/conduit-connector-materialize/config"
+	sdk "github.com/conduitio/conduit-connector-sdk"
+)
+
+type Spec struct{}
+
+// Specification returns the Plugin's Specification.
+func Specification() sdk.Specification {
+	return sdk.Specification{
+		Name:    "materialize",
+		Summary: "A Materialize destination plugin for Conduit, written in Go.",
+		Version: "v0.0.1",
+		Author:  "Meroxa, Inc.",
+		DestinationParams: map[string]sdk.Parameter{
+			config.ConfigKeyURL: {
+				Default:     "",
+				Required:    true,
+				Description: "The connection URL for Materialize instance.",
+			},
+			config.ConfigKeyTable: {
+				Default:     "",
+				Required:    false,
+				Description: "The table name of the table in Materialize that the connector should write to.",
+			},
+			config.ConfigKeyKey: {
+				Default:     "",
+				Required:    false,
+				Description: "The column name used when updating and deleting records.",
+			},
+		},
+	}
+}
