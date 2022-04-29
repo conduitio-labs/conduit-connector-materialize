@@ -17,7 +17,6 @@ package destination
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/conduitio/conduit-connector-materialize/config"
@@ -35,15 +34,6 @@ const (
 	actionInsert = "insert"
 	actionUpdate = "update"
 	actionDelete = "delete"
-)
-
-var (
-	// ErrEmptyPayload occurs when a provided payload is empty.
-	ErrEmptyPayload = errors.New("payload cannot be empty")
-	// ErrEmptyKey occurs when there is no value for key.
-	ErrEmptyKey = errors.New("key value must be provided")
-	// ErrCompositeKeysNotSupported occurs when there are more than one key in a Key map.
-	ErrCompositeKeysNotSupported = errors.New("composite keys not yet supported")
 )
 
 // Destination Materialize Connector persists records to an Materialize database.
