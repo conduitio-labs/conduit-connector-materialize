@@ -270,6 +270,124 @@ func TestDestination_Write(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "should delete, action delete",
+			fields: fields{
+				conn: conn,
+				config: config.Config{
+					URL:   dsn,
+					Table: "users",
+				},
+			},
+			args: args{
+				ctx: context.Background(),
+				record: sdk.Record{
+					Position: sdk.Position("999"),
+					Metadata: map[string]string{
+						"action": "delete",
+					},
+					Key: sdk.StructuredData{
+						"id": 3,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "should return err, action delete, value for a key is not found",
+			fields: fields{
+				conn: conn,
+				config: config.Config{
+					URL:   dsn,
+					Table: "users",
+					Key:   "id",
+				},
+			},
+			args: args{
+				ctx: context.Background(),
+				record: sdk.Record{
+					Position: sdk.Position("999"),
+					Metadata: map[string]string{
+						"action": "delete",
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "should return err, unknown key, action delete",
+			fields: fields{
+				conn: conn,
+				config: config.Config{
+					URL:   dsn,
+					Table: "users",
+				},
+			},
+			args: args{
+				ctx: context.Background(),
+				record: sdk.Record{
+					Position: sdk.Position("999"),
+					Metadata: map[string]string{
+						"action": "delete",
+					},
+					Key: sdk.StructuredData{
+						"unknown": 3,
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "should update, action update",
+			fields: fields{
+				conn: conn,
+				config: config.Config{
+					URL:   dsn,
+					Table: "users",
+					Key:   "id",
+				},
+			},
+			args: args{
+				ctx: context.Background(),
+				record: sdk.Record{
+					Position: sdk.Position("999"),
+					Metadata: map[string]string{
+						"action": "update",
+					},
+					Key: sdk.StructuredData{
+						"id": 2,
+					},
+					Payload: sdk.StructuredData{
+						"name": "Alex",
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "should return error, empty payload",
+			fields: fields{
+				conn: conn,
+				config: config.Config{
+					URL:   dsn,
+					Table: "users",
+					Key:   "id",
+				},
+			},
+			args: args{
+				ctx: context.Background(),
+				record: sdk.Record{
+					Position: sdk.Position("999"),
+					Metadata: map[string]string{
+						"action": "update",
+					},
+					Key: sdk.StructuredData{
+						"id": 4,
+					},
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
