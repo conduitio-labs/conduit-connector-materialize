@@ -26,7 +26,7 @@ func Specification() sdk.Specification {
 	return sdk.Specification{
 		Name:    "materialize",
 		Summary: "A Materialize destination plugin for Conduit, written in Go.",
-		Version: "v0.0.1",
+		Version: "v0.1.0",
 		Author:  "Meroxa, Inc.",
 		DestinationParams: map[string]sdk.Parameter{
 			config.ConfigKeyURL: {
@@ -36,12 +36,12 @@ func Specification() sdk.Specification {
 			},
 			config.ConfigKeyTable: {
 				Default:     "",
-				Required:    false,
-				Description: "The table name of the table in Materialize that the connector should write to.",
+				Required:    true,
+				Description: "The table name of the table in Materialize that the connector should write to, by default.",
 			},
 			config.ConfigKeyKey: {
 				Default:     "",
-				Required:    false,
+				Required:    true,
 				Description: "The column name used when updating and deleting records.",
 			},
 		},

@@ -28,11 +28,11 @@ type Config struct {
 	URL string `validate:"required,url"`
 	// The maximum identifier length is 63.
 	// See https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS.
-	Table string `validate:"max=63"`
-	Key   string `validate:"max=63"`
+	Table string `validate:"required,max=63"`
+	Key   string `validate:"required,max=63"`
 }
 
-// Parse attempts to parse plugins.Config into a Config struct
+// Parse attempts to parse a provided map[string]string into a Config struct.
 func Parse(cfg map[string]string) (Config, error) {
 	config := Config{
 		URL:   cfg[ConfigKeyURL],

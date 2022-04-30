@@ -42,16 +42,6 @@ func TestParse(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "successfull, only url",
-			cfg: map[string]string{
-				"url": "postgres://materialize@localhost:6875/materialize?sslmode=disable",
-			},
-			want: Config{
-				URL: "postgres://materialize@localhost:6875/materialize?sslmode=disable",
-			},
-			wantErr: false,
-		},
-		{
 			name: "missing url",
 			cfg: map[string]string{
 				"table": "footable",
@@ -60,6 +50,26 @@ func TestParse(t *testing.T) {
 			want:        Config{},
 			wantErr:     true,
 			expectedErr: "\"url\" config value must be set",
+		},
+		{
+			name: "missing table",
+			cfg: map[string]string{
+				"url": "postgres://materialize@localhost:6875/materialize?sslmode=disable",
+				"key": "id",
+			},
+			want:        Config{},
+			wantErr:     true,
+			expectedErr: "\"table\" config value must be set",
+		},
+		{
+			name: "missing key",
+			cfg: map[string]string{
+				"url":   "postgres://materialize@localhost:6875/materialize?sslmode=disable",
+				"table": "footable",
+			},
+			want:        Config{},
+			wantErr:     true,
+			expectedErr: "\"key\" config value must be set",
 		},
 		{
 			name: "invalid url",
@@ -102,11 +112,13 @@ func TestParse(t *testing.T) {
 			if err != nil {
 				if !tt.wantErr {
 					t.Errorf("parse error = \"%s\", wantErr %t", err.Error(), tt.wantErr)
+
 					return
 				}
 
 				if err.Error() != tt.expectedErr {
 					t.Errorf("expected error \"%s\", got \"%s\"", tt.expectedErr, err.Error())
+
 					return
 				}
 			}
