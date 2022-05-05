@@ -75,10 +75,7 @@ func (d *Destination) Open(ctx context.Context) error {
 
 // Write writes a record into a Destination.
 func (d *Destination) Write(ctx context.Context, record sdk.Record) error {
-	action, ok := record.Metadata[metadataAction]
-	if !ok {
-		return d.insert(ctx, record)
-	}
+	action := record.Metadata[metadataAction]
 
 	switch action {
 	case actionInsert:
