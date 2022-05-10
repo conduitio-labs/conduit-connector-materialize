@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/conduitio/conduit-connector-materialize/config"
 	sdk "github.com/conduitio/conduit-connector-sdk"
@@ -238,7 +239,12 @@ func (d *Destination) structurizeData(data sdk.Data) (sdk.StructuredData, error)
 		return nil, fmt.Errorf("failed to unmarshal data into structured data: %w", err)
 	}
 
-	return structuredData, nil
+	structuredDataLower := make(sdk.StructuredData)
+	for key, value := range structuredData {
+		structuredDataLower[strings.ToLower(key)] = value
+	}
+
+	return structuredDataLower, nil
 }
 
 // getTableName returns either the records metadata value for table
@@ -249,7 +255,7 @@ func (d *Destination) getTableName(metadata map[string]string) string {
 		return d.config.Table
 	}
 
-	return tableName
+	return strings.ToLower(tableName)
 }
 
 // getKeyColumnName returns either the first key within the Key structured data

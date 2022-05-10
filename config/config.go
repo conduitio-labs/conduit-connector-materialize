@@ -14,6 +14,8 @@
 
 package config
 
+import "strings"
+
 const (
 	// ConfigKeyURL is the config name for a connection URL.
 	ConfigKeyURL = "url"
@@ -36,8 +38,8 @@ type Config struct {
 func Parse(cfg map[string]string) (Config, error) {
 	config := Config{
 		URL:   cfg[ConfigKeyURL],
-		Table: cfg[ConfigKeyTable],
-		Key:   cfg[ConfigKeyKey],
+		Table: strings.ToLower(cfg[ConfigKeyTable]),
+		Key:   strings.ToLower(cfg[ConfigKeyKey]),
 	}
 
 	if err := config.Validate(); err != nil {
