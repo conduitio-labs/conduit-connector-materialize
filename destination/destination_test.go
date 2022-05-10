@@ -192,6 +192,30 @@ func TestDestination_Write(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "should insert, columns in UPPERCASE will be converted to lowercase",
+			fields: fields{
+				conn: conn,
+				config: config.Config{
+					URL:   dsn,
+					Table: "users",
+				},
+			},
+			args: args{
+				ctx: context.Background(),
+				record: sdk.Record{
+					Position: sdk.Position("999"),
+					Metadata: map[string]string{
+						"action": "insert",
+					},
+					Payload: sdk.StructuredData{
+						"ID":   3,
+						"NAME": "Anon",
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
 			name: "should return nil, unknown action",
 			fields: fields{
 				conn: conn,
@@ -383,6 +407,29 @@ func TestDestination_Write(t *testing.T) {
 					},
 					Key: sdk.StructuredData{
 						"id": 4,
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "should insert, unknown columns in UPPERCASE",
+			fields: fields{
+				conn: conn,
+				config: config.Config{
+					URL:   dsn,
+					Table: "users",
+				},
+			},
+			args: args{
+				ctx: context.Background(),
+				record: sdk.Record{
+					Position: sdk.Position("999"),
+					Metadata: map[string]string{
+						"action": "insert",
+					},
+					Payload: sdk.StructuredData{
+						"UNKNOWN": 3,
 					},
 				},
 			},
