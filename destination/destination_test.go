@@ -64,7 +64,8 @@ func migrateTestDB(ctx context.Context, conn *pgx.Conn) error {
 	_, err := conn.Exec(ctx, `
 		create table if not exists users(
 			id int,
-			name text
+			name text,
+			skills jsonb
 		);
 	`)
 	if err != nil {
@@ -413,7 +414,7 @@ func TestDestination_Write(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "should insert, unknown columns in UPPERCASE",
+			name: "should return error, unknown columns in UPPERCASE",
 			fields: fields{
 				conn: conn,
 				config: config.Config{
@@ -434,6 +435,61 @@ func TestDestination_Write(t *testing.T) {
 				},
 			},
 			wantErr: true,
+		},
+		{
+			name: "should insert, json column",
+			fields: fields{
+				conn: conn,
+				config: config.Config{
+					URL:   dsn,
+					Table: "users",
+				},
+			},
+			args: args{
+				ctx: context.Background(),
+				record: sdk.Record{
+					Position: sdk.Position("999"),
+					Metadata: map[string]string{
+						"action": "insert",
+					},
+					Payload: sdk.StructuredData{
+						"id":     7,
+						"name":   "alien",
+						"skills": map[string]any{"read": 2, "write": 3},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "should insert, json nested column",
+			fields: fields{
+				conn: conn,
+				config: config.Config{
+					URL:   dsn,
+					Table: "users",
+				},
+			},
+			args: args{
+				ctx: context.Background(),
+				record: sdk.Record{
+					Position: sdk.Position("999"),
+					Metadata: map[string]string{
+						"action": "insert",
+					},
+					Payload: sdk.StructuredData{
+						"id":   7,
+						"name": "alien",
+						"skills": map[string]any{
+							"read": 2,
+							"nested": map[string]any{
+								"level": 3,
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
