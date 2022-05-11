@@ -241,6 +241,17 @@ func (d *Destination) structurizeData(data sdk.Data) (sdk.StructuredData, error)
 
 	structuredDataLower := make(sdk.StructuredData)
 	for key, value := range structuredData {
+		if parsedValue, ok := value.(map[string]any); ok {
+			valueJSON, err := json.Marshal(parsedValue)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal map into json: %w", err)
+			}
+
+			structuredDataLower[strings.ToLower(key)] = string(valueJSON)
+
+			continue
+		}
+
 		structuredDataLower[strings.ToLower(key)] = value
 	}
 
