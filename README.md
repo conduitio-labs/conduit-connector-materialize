@@ -16,7 +16,11 @@ If a record contains a `table` property in its metadata it will be inserted in t
 
 ### Known limitations
 
-Materialize doesn't yet support primary keys, unique constraints, and `UPSERT`. This means there is no guarantee that Materialize will not have duplicates. Delete and update will affect all records found by the specified key and insert only appends data.
+Materialize doesn't yet support the following features:
+- Primary keys, unique constraints, and `UPSERT`. This means there is no guarantee that Materialize will not have duplicates. Delete and update will affect all records found by the specified key and insert only appends data.
+- Placeholders (`?`) within prepared statements.
+
+These limitations are the reason why the [PostgreSQL connector](https://github.com/ConduitIO/conduit-connector-postgres) cannot be used with Materialize.
 
 ### Configuration Options
 
