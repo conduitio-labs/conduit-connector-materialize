@@ -12,18 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package materialize
 
 import (
-	materialize "github.com/conduitio/conduit-connector-materialize"
+	"testing"
+
 	"github.com/conduitio/conduit-connector-materialize/destination"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
-func main() {
-	sdk.Serve(sdk.Connector{
-		NewSpecification: materialize.Specification,
-		NewSource:        nil,
-		NewDestination:   destination.NewDestination,
-	})
+func TestAcceptance(t *testing.T) {
+	sdk.AcceptanceTest(t, sdk.ConfigurableAcceptanceTestDriver{
+		Config: sdk.ConfigurableAcceptanceTestDriverConfig{
+			Connector: sdk.Connector{
+				NewSpecification: Specification,
+				NewSource:        nil,
+				NewDestination:   destination.NewDestination,
+			},
+			SourceConfig: nil,
+			DestinationConfig: map[string]string{
+				"url":   "postgres://materialize@localhost:6875/materialize?sslmode=disable",
+				"table": "users",
+				"key":   "id",
+			},
+			Skip: []string{"TestDestination_Write*"},
+		},
+	},
+	)
 }
