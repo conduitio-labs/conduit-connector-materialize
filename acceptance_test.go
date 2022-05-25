@@ -15,11 +15,43 @@
 package materialize
 
 import (
+	"context"
+	"fmt"
+	"os"
 	"testing"
 
+	"github.com/conduitio/conduit-connector-materialize/config"
 	"github.com/conduitio/conduit-connector-materialize/destination"
+	"github.com/conduitio/conduit-connector-materialize/test"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
+
+var (
+	dsn       = "postgres://materialize@localhost:6875/materialize?sslmode=disable"
+	testTable = "acceptance_test_users"
+)
+
+func TestMain(m *testing.M) {
+	os.Exit(testMainWrapper(m))
+}
+
+func testMainWrapper(m *testing.M) int {
+	conn, err := test.SetupTestConnection(dsn)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to setup test connection: %s", err.Error())
+
+		return 1
+	}
+	defer conn.Close(context.Background())
+
+	if err = test.MigrateTestDB(context.Background(), conn, testTable); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to migrate test db: %s", err.Error())
+
+		return 1
+	}
+
+	return m.Run()
+}
 
 func TestAcceptance(t *testing.T) {
 	sdk.AcceptanceTest(t, sdk.ConfigurableAcceptanceTestDriver{
@@ -31,9 +63,9 @@ func TestAcceptance(t *testing.T) {
 			},
 			SourceConfig: nil,
 			DestinationConfig: map[string]string{
-				"url":   "postgres://materialize@localhost:6875/materialize?sslmode=disable",
-				"table": "users",
-				"key":   "id",
+				config.ConfigKeyURL:   dsn,
+				config.ConfigKeyTable: testTable,
+				config.ConfigKeyKey:   "id",
 			},
 			Skip: []string{"TestDestination_Write*"},
 		},
