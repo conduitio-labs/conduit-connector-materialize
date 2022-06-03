@@ -22,13 +22,15 @@ import (
 	"testing"
 
 	"github.com/conduitio/conduit-connector-materialize/config"
+	"github.com/conduitio/conduit-connector-materialize/test"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/jackc/pgx/v4"
 )
 
 var (
-	conn *pgx.Conn
-	dsn  = "postgres://materialize@localhost:6875/materialize?sslmode=disable"
+	conn      *pgx.Conn
+	dsn       = "postgres://materialize@localhost:6875/materialize?sslmode=disable"
+	testTable = "users"
 )
 
 func TestMain(m *testing.M) {
@@ -36,43 +38,21 @@ func TestMain(m *testing.M) {
 }
 
 func testMainWrapper(m *testing.M) int {
-	var err error
-	conn, err = pgx.Connect(context.Background(), dsn)
+	conn, err := test.SetupTestConnection(dsn)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to connect to materialize: %s", err.Error())
+		fmt.Fprintf(os.Stderr, "failed to setup test connection: %s", err.Error())
 
 		return 1
 	}
 	defer conn.Close(context.Background())
 
-	if err := conn.Ping(context.Background()); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to ping materialize: %s", err.Error())
-
-		return 1
-	}
-
-	if err := migrateTestDB(context.Background(), conn); err != nil {
+	if err = test.MigrateTestDB(context.Background(), conn, testTable); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to migrate test db: %s", err.Error())
 
 		return 1
 	}
 
 	return m.Run()
-}
-
-func migrateTestDB(ctx context.Context, conn *pgx.Conn) error {
-	_, err := conn.Exec(ctx, `
-		create table if not exists users(
-			id int,
-			name text,
-			skills jsonb
-		);
-	`)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func TestDestination_Configure(t *testing.T) {

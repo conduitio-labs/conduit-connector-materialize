@@ -26,6 +26,8 @@ func Specification() sdk.Specification {
 	return sdk.Specification{
 		Name:    "materialize",
 		Summary: "A Materialize destination plugin for Conduit, written in Go.",
+		Description: "This connector allows you to move data from any Conduit Source to a Materialize Table. " +
+			"This connector is a destination connector.",
 		Version: "v0.1.0",
 		Author:  "Meroxa, Inc.",
 		DestinationParams: map[string]sdk.Parameter{
