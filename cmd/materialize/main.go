@@ -21,5 +21,9 @@ import (
 )
 
 func main() {
-	sdk.Serve(materialize.Specification, nil, destination.NewDestination)
+	sdk.Serve(sdk.Connector{
+		NewSpecification: materialize.Specification,
+		NewSource:        nil,
+		NewDestination:   destination.NewDestination,
+	})
 }
