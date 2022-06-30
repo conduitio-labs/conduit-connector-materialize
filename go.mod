@@ -3,7 +3,7 @@ module github.com/conduitio/conduit-connector-materialize
 go 1.18
 
 require (
-	github.com/brianvoe/gofakeit/v6 v6.16.0
+	github.com/brianvoe/gofakeit/v6 v6.17.0
 	github.com/conduitio/conduit-connector-sdk v0.2.1-0.20220530152250-733149cddc0b
 	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/go-playground/locales v0.14.0
