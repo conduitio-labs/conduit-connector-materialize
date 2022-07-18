@@ -15,7 +15,7 @@
 package materialize
 
 import (
-	"github.com/conduitio/conduit-connector-materialize/config"
+	"github.com/conduitio-labs/conduit-connector-materialize/config"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 

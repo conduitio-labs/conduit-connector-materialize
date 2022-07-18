@@ -23,12 +23,14 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v6"
-	"github.com/conduitio/conduit-connector-materialize/config"
-	"github.com/conduitio/conduit-connector-materialize/destination"
-	"github.com/conduitio/conduit-connector-materialize/test"
+
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v4"
+
+	"github.com/conduitio-labs/conduit-connector-materialize/config"
+	"github.com/conduitio-labs/conduit-connector-materialize/destination"
+	"github.com/conduitio-labs/conduit-connector-materialize/test"
 )
 
 var (

@@ -21,8 +21,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/conduitio/conduit-connector-materialize/config"
-	"github.com/conduitio/conduit-connector-materialize/test"
+	"github.com/conduitio-labs/conduit-connector-materialize/config"
+	"github.com/conduitio-labs/conduit-connector-materialize/test"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/jackc/pgx/v4"
 )
