@@ -1,4 +1,4 @@
-module github.com/conduitio/conduit-connector-materialize
+module github.com/conduitio-labs/conduit-connector-materialize
 
 go 1.18
 

@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/conduitio/conduit-connector-materialize/config"
+	"github.com/conduitio-labs/conduit-connector-materialize/config"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v4"
