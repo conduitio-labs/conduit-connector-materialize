@@ -44,7 +44,7 @@ func NewDestination() sdk.Destination {
 	return sdk.DestinationWithMiddleware(&Destination{}, sdk.DefaultDestinationMiddleware()...)
 }
 
-// Paramets returns a map of named sdk.Parameters that describe how to configure the Destination.
+// Parameters returns a map of named sdk.Parameters that describe how to configure the Destination.
 func (d *Destination) Parameters() map[string]sdk.Parameter {
 	return map[string]sdk.Parameter{
 		config.KeyURL: {
