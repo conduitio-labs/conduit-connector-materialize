@@ -28,13 +28,7 @@ import (
 
 const (
 	// metadata related.
-	metadataTable  = "table"
-	metadataAction = "action"
-
-	// action names.
-	actionInsert = "insert"
-	actionUpdate = "update"
-	actionDelete = "delete"
+	metadataTable = "table"
 )
 
 // Destination Materialize Connector persists records to an Materialize database.
@@ -47,7 +41,28 @@ type Destination struct {
 
 // NewDestination creates new instance of the Destination.
 func NewDestination() sdk.Destination {
-	return &Destination{}
+	return sdk.DestinationWithMiddleware(&Destination{}, sdk.DefaultDestinationMiddleware()...)
+}
+
+// Paramets returns a map of named sdk.Parameters that describe how to configure the Destination.
+func (d *Destination) Parameters() map[string]sdk.Parameter {
+	return map[string]sdk.Parameter{
+		config.KeyURL: {
+			Default:     "",
+			Required:    true,
+			Description: "The connection URL for Materialize instance.",
+		},
+		config.KeyTable: {
+			Default:     "",
+			Required:    true,
+			Description: "The table name of the table in Materialize that the connector should write to, by default.",
+		},
+		config.KeyKey: {
+			Default:     "",
+			Required:    true,
+			Description: "The column name used when updating and deleting records.",
+		},
+	}
 }
 
 // Configure parses and initializes the config.
@@ -75,26 +90,27 @@ func (d *Destination) Open(ctx context.Context) error {
 }
 
 // Write writes a record into a Destination.
-func (d *Destination) Write(ctx context.Context, record sdk.Record) error {
-	action := record.Metadata[metadataAction]
-
-	switch action {
-	case actionInsert:
-		return d.insert(ctx, record)
-	case actionUpdate:
-		return d.update(ctx, record)
-	case actionDelete:
-		return d.delete(ctx, record)
-	default:
-		return d.insert(ctx, record)
+func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, error) {
+	for i, record := range records {
+		err := sdk.Util.Destination.Route(ctx, record,
+			d.insert,
+			d.update,
+			d.delete,
+			d.insert,
+		)
+		if err != nil {
+			return i, fmt.Errorf("route %s: %w", record.Operation.String(), err)
+		}
 	}
+
+	return len(records), nil
 }
 
 // insert is an append-only operation that doesn't care about keys.
 func (d *Destination) insert(ctx context.Context, record sdk.Record) error {
 	tableName := d.getTableName(record.Metadata)
 
-	payload, err := d.structurizeData(record.Payload)
+	payload, err := d.structurizeData(record.Payload.After)
 	if err != nil {
 		return fmt.Errorf("failed to get payload: %w", err)
 	}
@@ -145,7 +161,7 @@ func (d *Destination) update(ctx context.Context, record sdk.Record) error {
 		return ErrEmptyKey
 	}
 
-	payload, err := d.structurizeData(record.Payload)
+	payload, err := d.structurizeData(record.Payload.After)
 	if err != nil {
 		return fmt.Errorf("failed to get payload: %w", err)
 	}

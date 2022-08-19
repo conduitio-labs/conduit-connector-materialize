@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package materialize
 
 import (
-	materialize "github.com/conduitio-labs/conduit-connector-materialize"
+	"github.com/conduitio-labs/conduit-connector-materialize/destination"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
-func main() {
-	sdk.Serve(materialize.Connector)
+var Connector = sdk.Connector{
+	NewSpecification: Specification,
+	NewSource:        nil,
+	NewDestination:   destination.NewDestination,
 }
