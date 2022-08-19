@@ -15,7 +15,6 @@
 package materialize
 
 import (
-	"github.com/conduitio-labs/conduit-connector-materialize/config"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
@@ -30,22 +29,5 @@ func Specification() sdk.Specification {
 			"This connector is a destination connector.",
 		Version: "v0.1.0",
 		Author:  "Meroxa, Inc.",
-		DestinationParams: map[string]sdk.Parameter{
-			config.ConfigKeyURL: {
-				Default:     "",
-				Required:    true,
-				Description: "The connection URL for Materialize instance.",
-			},
-			config.ConfigKeyTable: {
-				Default:     "",
-				Required:    true,
-				Description: "The table name of the table in Materialize that the connector should write to, by default.",
-			},
-			config.ConfigKeyKey: {
-				Default:     "",
-				Required:    true,
-				Description: "The column name used when updating and deleting records.",
-			},
-		},
 	}
 }

@@ -23,14 +23,11 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v6"
-
+	"github.com/conduitio-labs/conduit-connector-materialize/config"
+	"github.com/conduitio-labs/conduit-connector-materialize/test"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v4"
-
-	"github.com/conduitio-labs/conduit-connector-materialize/config"
-	"github.com/conduitio-labs/conduit-connector-materialize/destination"
-	"github.com/conduitio-labs/conduit-connector-materialize/test"
 )
 
 var (
@@ -70,16 +67,12 @@ func TestAcceptance(t *testing.T) {
 	sdk.AcceptanceTest(t, AcceptanceTestDriver{
 		ConfigurableAcceptanceTestDriver: sdk.ConfigurableAcceptanceTestDriver{
 			Config: sdk.ConfigurableAcceptanceTestDriverConfig{
-				Connector: sdk.Connector{
-					NewSpecification: Specification,
-					NewSource:        nil,
-					NewDestination:   destination.NewDestination,
-				},
+				Connector:    Connector,
 				SourceConfig: nil,
 				DestinationConfig: map[string]string{
-					config.ConfigKeyURL:   dsn,
-					config.ConfigKeyTable: testTable,
-					config.ConfigKeyKey:   "id",
+					config.KeyURL:   dsn,
+					config.KeyTable: testTable,
+					config.KeyKey:   "id",
 				},
 			},
 		},
@@ -129,36 +122,44 @@ func (d AcceptanceTestDriver) ReadFromDestination(t *testing.T, records []sdk.Re
 		}
 
 		outRecords = append(outRecords, sdk.Record{
-			Metadata: nil,
+			Metadata:  nil,
+			Operation: sdk.OperationCreate,
 			Key: sdk.StructuredData(map[string]any{
 				"id": int32(id),
 			}),
-			Payload: sdk.StructuredData(map[string]any{
-				"id":   int32(id),
-				"name": name,
-			}),
+			Payload: sdk.Change{
+				After: sdk.StructuredData(map[string]any{
+					"id":   int32(id),
+					"name": name,
+				}),
+			},
 		})
 	}
 
 	return outRecords
 }
 
-func (d AcceptanceTestDriver) GenerateRecord(t *testing.T) sdk.Record {
+func (d AcceptanceTestDriver) GenerateRecord(t *testing.T, operation sdk.Operation) sdk.Record {
 	id := gofakeit.Int32()
 
 	position := make([]byte, binary.MaxVarintLen64)
 	_ = binary.PutVarint(position, int64(id))
 
+	metatada := make(sdk.Metadata)
+	metatada.SetCreatedAt(gofakeit.Date())
+
 	return sdk.Record{
 		Position:  sdk.Position(position),
-		Metadata:  nil,
-		CreatedAt: gofakeit.Date(),
+		Operation: sdk.OperationCreate,
+		Metadata:  metatada,
 		Key: sdk.StructuredData(map[string]any{
 			"id": id,
 		}),
-		Payload: sdk.StructuredData(map[string]any{
-			"id":   id,
-			"name": gofakeit.FirstName(),
-		}),
+		Payload: sdk.Change{
+			After: sdk.StructuredData(map[string]any{
+				"id":   id,
+				"name": gofakeit.FirstName(),
+			}),
+		},
 	}
 }

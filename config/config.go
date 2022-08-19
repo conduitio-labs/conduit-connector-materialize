@@ -14,15 +14,17 @@
 
 package config
 
-import "strings"
+import (
+	"strings"
+)
 
 const (
-	// ConfigKeyURL is the config name for a connection URL.
-	ConfigKeyURL = "url"
-	// ConfigKeyTable is the config name for a table.
-	ConfigKeyTable = "table"
-	// ConfigKeyKey is the config name for a key.
-	ConfigKeyKey = "key"
+	// KeyURL is the config name for a connection URL.
+	KeyURL = "url"
+	// KeyTable is the config name for a table.
+	KeyTable = "table"
+	// KeyKey is the config name for a key.
+	KeyKey = "key"
 )
 
 // Config represents configuration needed for Materialize.
@@ -37,9 +39,9 @@ type Config struct {
 // Parse attempts to parse a provided map[string]string into a Config struct.
 func Parse(cfg map[string]string) (Config, error) {
 	config := Config{
-		URL:   cfg[ConfigKeyURL],
-		Table: strings.ToLower(cfg[ConfigKeyTable]),
-		Key:   strings.ToLower(cfg[ConfigKeyKey]),
+		URL:   cfg[KeyURL],
+		Table: strings.ToLower(cfg[KeyTable]),
+		Key:   strings.ToLower(cfg[KeyKey]),
 	}
 
 	if err := config.Validate(); err != nil {

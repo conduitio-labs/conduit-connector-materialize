@@ -68,9 +68,9 @@ func TestDestination_Configure(t *testing.T) {
 	}
 
 	err := destination.Configure(ctx, map[string]string{
-		config.ConfigKeyURL:   expectedConfiguration.URL,
-		config.ConfigKeyTable: expectedConfiguration.Table,
-		config.ConfigKeyKey:   expectedConfiguration.Key,
+		config.KeyURL:   expectedConfiguration.URL,
+		config.KeyTable: expectedConfiguration.Table,
+		config.KeyKey:   expectedConfiguration.Key,
 	})
 	if err != nil {
 		t.Fatalf("failed to parse the Configuration: %v", err)
@@ -117,9 +117,11 @@ func TestDestination_Write(t *testing.T) {
 				ctx: context.Background(),
 				record: sdk.Record{
 					Position: sdk.Position("999"),
-					Payload: sdk.StructuredData{
-						"id":   1,
-						"name": "Anon",
+					Payload: sdk.Change{
+						After: sdk.StructuredData{
+							"id":   1,
+							"name": "Anon",
+						},
 					},
 				},
 			},
@@ -140,9 +142,11 @@ func TestDestination_Write(t *testing.T) {
 					Metadata: map[string]string{
 						"table": "users",
 					},
-					Payload: sdk.StructuredData{
-						"id":   2,
-						"name": "Anon",
+					Payload: sdk.Change{
+						After: sdk.StructuredData{
+							"id":   2,
+							"name": "Anon",
+						},
 					},
 				},
 			},
@@ -164,9 +168,11 @@ func TestDestination_Write(t *testing.T) {
 					Metadata: map[string]string{
 						"action": "insert",
 					},
-					Payload: sdk.StructuredData{
-						"id":   3,
-						"name": "Anon",
+					Payload: sdk.Change{
+						After: sdk.StructuredData{
+							"id":   3,
+							"name": "Anon",
+						},
 					},
 				},
 			},
@@ -188,9 +194,11 @@ func TestDestination_Write(t *testing.T) {
 					Metadata: map[string]string{
 						"action": "insert",
 					},
-					Payload: sdk.StructuredData{
-						"ID":   3,
-						"NAME": "Anon",
+					Payload: sdk.Change{
+						After: sdk.StructuredData{
+							"ID":   3,
+							"NAME": "Anon",
+						},
 					},
 				},
 			},
@@ -212,9 +220,11 @@ func TestDestination_Write(t *testing.T) {
 					Metadata: map[string]string{
 						"action": "unknown",
 					},
-					Payload: sdk.StructuredData{
-						"id":   4,
-						"name": "Anon",
+					Payload: sdk.Change{
+						After: sdk.StructuredData{
+							"id":   4,
+							"name": "Anon",
+						},
 					},
 				},
 			},
@@ -232,9 +242,11 @@ func TestDestination_Write(t *testing.T) {
 				ctx: context.Background(),
 				record: sdk.Record{
 					Position: sdk.Position("999"),
-					Payload: sdk.StructuredData{
-						"id":   5,
-						"name": "Anon",
+					Payload: sdk.Change{
+						After: sdk.StructuredData{
+							"id":   5,
+							"name": "Anon",
+						},
 					},
 				},
 			},
@@ -270,7 +282,9 @@ func TestDestination_Write(t *testing.T) {
 				ctx: context.Background(),
 				record: sdk.Record{
 					Position: sdk.Position("999"),
-					Payload:  sdk.RawData([]byte("id:1,name:anon")),
+					Payload: sdk.Change{
+						After: sdk.RawData([]byte("id:1,name:anon")),
+					},
 				},
 			},
 			wantErr: true,
@@ -362,8 +376,10 @@ func TestDestination_Write(t *testing.T) {
 					Key: sdk.StructuredData{
 						"id": 2,
 					},
-					Payload: sdk.StructuredData{
-						"name": "Alex",
+					Payload: sdk.Change{
+						After: sdk.StructuredData{
+							"name": "Alex",
+						},
 					},
 				},
 			},
@@ -409,8 +425,10 @@ func TestDestination_Write(t *testing.T) {
 					Metadata: map[string]string{
 						"action": "insert",
 					},
-					Payload: sdk.StructuredData{
-						"UNKNOWN": 3,
+					Payload: sdk.Change{
+						After: sdk.StructuredData{
+							"UNKNOWN": 3,
+						},
 					},
 				},
 			},
@@ -432,10 +450,12 @@ func TestDestination_Write(t *testing.T) {
 					Metadata: map[string]string{
 						"action": "insert",
 					},
-					Payload: sdk.StructuredData{
-						"id":     7,
-						"name":   "alien",
-						"skills": map[string]any{"read": 2, "write": 3},
+					Payload: sdk.Change{
+						After: sdk.StructuredData{
+							"id":     7,
+							"name":   "alien",
+							"skills": map[string]any{"read": 2, "write": 3},
+						},
 					},
 				},
 			},
@@ -457,13 +477,15 @@ func TestDestination_Write(t *testing.T) {
 					Metadata: map[string]string{
 						"action": "insert",
 					},
-					Payload: sdk.StructuredData{
-						"id":   7,
-						"name": "alien",
-						"skills": map[string]any{
-							"read": 2,
-							"nested": map[string]any{
-								"level": 3,
+					Payload: sdk.Change{
+						After: sdk.StructuredData{
+							"id":   7,
+							"name": "alien",
+							"skills": map[string]any{
+								"read": 2,
+								"nested": map[string]any{
+									"level": 3,
+								},
 							},
 						},
 					},
@@ -479,7 +501,7 @@ func TestDestination_Write(t *testing.T) {
 				conn:                     tt.fields.conn,
 				config:                   tt.fields.config,
 			}
-			if err := d.Write(tt.args.ctx, tt.args.record); (err != nil) != tt.wantErr {
+			if _, err := d.Write(tt.args.ctx, []sdk.Record{tt.args.record}); (err != nil) != tt.wantErr {
 				t.Errorf("Destination.Write() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
