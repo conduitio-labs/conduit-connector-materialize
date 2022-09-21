@@ -204,7 +204,7 @@ func TestDestination_Write(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "should return nil, unknown operation",
+			name: "should return err, unknown operation",
 			fields: fields{
 				conn: conn,
 				config: config.Config{
@@ -215,8 +215,7 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationCreate,
+					Position: sdk.Position("999"),
 					Payload: sdk.Change{
 						After: sdk.StructuredData{
 							"id":   4,
@@ -225,7 +224,7 @@ func TestDestination_Write(t *testing.T) {
 					},
 				},
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name: "should return err, empty table name",
