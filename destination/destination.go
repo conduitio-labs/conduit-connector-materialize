@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/conduitio-labs/conduit-connector-materialize/coltypes"
 	"github.com/conduitio-labs/conduit-connector-materialize/config"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/doug-martin/goqu/v9"
@@ -35,8 +36,9 @@ const (
 type Destination struct {
 	sdk.UnimplementedDestination
 
-	conn   *pgx.Conn
-	config config.Config
+	conn        *pgx.Conn
+	columnTypes map[string]string
+	config      config.Config
 }
 
 // NewDestination creates new instance of the Destination.
@@ -86,6 +88,11 @@ func (d *Destination) Open(ctx context.Context) error {
 
 	d.conn = conn
 
+	d.columnTypes, err = coltypes.GetColumnTypes(ctx, d.conn, d.config.Table)
+	if err != nil {
+		return fmt.Errorf("get column types: %w", err)
+	}
+
 	return nil
 }
 
@@ -118,6 +125,11 @@ func (d *Destination) insert(ctx context.Context, record sdk.Record) error {
 	// if payload is empty we don't need to insert anything
 	if payload == nil {
 		return ErrEmptyPayload
+	}
+
+	payload, err = coltypes.ConvertStructureData(ctx, d.columnTypes, payload)
+	if err != nil {
+		return fmt.Errorf("convert structure data: %w", err)
 	}
 
 	colArgs, valArgs := d.extractColumnsAndValues(payload)
@@ -169,6 +181,11 @@ func (d *Destination) update(ctx context.Context, record sdk.Record) error {
 	// if payload is empty we don't need to insert anything
 	if payload == nil {
 		return ErrEmptyPayload
+	}
+
+	payload, err = coltypes.ConvertStructureData(ctx, d.columnTypes, payload)
+	if err != nil {
+		return fmt.Errorf("convert structure data: %w", err)
 	}
 
 	// remove key from the payload, we will use the key inside a WHERE clause.

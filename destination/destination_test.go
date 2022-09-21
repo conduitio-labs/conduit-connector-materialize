@@ -38,7 +38,8 @@ func TestMain(m *testing.M) {
 }
 
 func testMainWrapper(m *testing.M) int {
-	conn, err := test.SetupTestConnection(dsn)
+	var err error
+	conn, err = test.SetupTestConnection(dsn)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to setup test connection: %s", err.Error())
 
