@@ -117,7 +117,8 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationCreate,
 					Payload: sdk.Change{
 						After: sdk.StructuredData{
 							"id":   1,
@@ -139,7 +140,8 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationCreate,
 					Metadata: map[string]string{
 						"table": "users",
 					},
@@ -154,7 +156,7 @@ func TestDestination_Write(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "should insert, action insert",
+			name: "should insert, operation insert",
 			fields: fields{
 				conn: conn,
 				config: config.Config{
@@ -165,10 +167,8 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
-					Metadata: map[string]string{
-						"action": "insert",
-					},
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationCreate,
 					Payload: sdk.Change{
 						After: sdk.StructuredData{
 							"id":   3,
@@ -191,10 +191,8 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
-					Metadata: map[string]string{
-						"action": "insert",
-					},
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationCreate,
 					Payload: sdk.Change{
 						After: sdk.StructuredData{
 							"ID":   3,
@@ -206,7 +204,7 @@ func TestDestination_Write(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "should return nil, unknown action",
+			name: "should return nil, unknown operation",
 			fields: fields{
 				conn: conn,
 				config: config.Config{
@@ -217,10 +215,8 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
-					Metadata: map[string]string{
-						"action": "unknown",
-					},
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationCreate,
 					Payload: sdk.Change{
 						After: sdk.StructuredData{
 							"id":   4,
@@ -242,7 +238,8 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationCreate,
 					Payload: sdk.Change{
 						After: sdk.StructuredData{
 							"id":   5,
@@ -265,7 +262,8 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationCreate,
 				},
 			},
 			wantErr: true,
@@ -282,7 +280,8 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationCreate,
 					Payload: sdk.Change{
 						After: sdk.RawData([]byte("id:1,name:anon")),
 					},
@@ -291,7 +290,7 @@ func TestDestination_Write(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "should delete, action delete",
+			name: "should delete, operation delete",
 			fields: fields{
 				conn: conn,
 				config: config.Config{
@@ -302,10 +301,8 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
-					Metadata: map[string]string{
-						"action": "delete",
-					},
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationDelete,
 					Key: sdk.StructuredData{
 						"id": 3,
 					},
@@ -314,7 +311,7 @@ func TestDestination_Write(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "should return err, action delete, value for a key is not found",
+			name: "should return err, operation delete, value for a key is not found",
 			fields: fields{
 				conn: conn,
 				config: config.Config{
@@ -326,16 +323,14 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
-					Metadata: map[string]string{
-						"action": "delete",
-					},
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationDelete,
 				},
 			},
 			wantErr: true,
 		},
 		{
-			name: "should return err, unknown key, action delete",
+			name: "should return err, unknown key, operation delete",
 			fields: fields{
 				conn: conn,
 				config: config.Config{
@@ -346,10 +341,8 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
-					Metadata: map[string]string{
-						"action": "delete",
-					},
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationDelete,
 					Key: sdk.StructuredData{
 						"unknown": 3,
 					},
@@ -358,7 +351,7 @@ func TestDestination_Write(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "should update, action update",
+			name: "should update, operation update",
 			fields: fields{
 				conn: conn,
 				config: config.Config{
@@ -370,10 +363,8 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
-					Metadata: map[string]string{
-						"action": "update",
-					},
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationUpdate,
 					Key: sdk.StructuredData{
 						"id": 2,
 					},
@@ -399,10 +390,8 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
-					Metadata: map[string]string{
-						"action": "update",
-					},
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationUpdate,
 					Key: sdk.StructuredData{
 						"id": 4,
 					},
@@ -422,10 +411,8 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
-					Metadata: map[string]string{
-						"action": "insert",
-					},
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationCreate,
 					Payload: sdk.Change{
 						After: sdk.StructuredData{
 							"UNKNOWN": 3,
@@ -447,10 +434,8 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
-					Metadata: map[string]string{
-						"action": "insert",
-					},
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationCreate,
 					Payload: sdk.Change{
 						After: sdk.StructuredData{
 							"id":     7,
@@ -474,10 +459,8 @@ func TestDestination_Write(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				record: sdk.Record{
-					Position: sdk.Position("999"),
-					Metadata: map[string]string{
-						"action": "insert",
-					},
+					Position:  sdk.Position("999"),
+					Operation: sdk.OperationCreate,
 					Payload: sdk.Change{
 						After: sdk.StructuredData{
 							"id":   7,
