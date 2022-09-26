@@ -143,7 +143,7 @@ func TestDestination_Write(t *testing.T) {
 					Position:  sdk.Position("999"),
 					Operation: sdk.OperationCreate,
 					Metadata: map[string]string{
-						"table": "users",
+						metadataTable: "users",
 					},
 					Payload: sdk.Change{
 						After: sdk.StructuredData{
