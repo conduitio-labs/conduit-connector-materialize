@@ -29,7 +29,7 @@ import (
 
 const (
 	// metadata related.
-	metadataTable = "table"
+	metadataTable = "materialize.table"
 )
 
 // Destination Materialize Connector persists records to an Materialize database.
