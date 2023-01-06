@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/brianvoe/gofakeit/v6 v6.20.1
-	github.com/conduitio/conduit-connector-sdk v0.4.0
+	github.com/conduitio/conduit-connector-sdk v0.4.2
 	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/go-playground/locales v0.14.0
 	github.com/go-playground/universal-translator v0.18.0
