@@ -1,3 +1,9 @@
+**Test Run 9/27/2022 - Smoke test Materialize Destination**
+
+**branch:** https://github.com/conduitio-labs/conduit-connector-materialize/tree/main
+
+**commit** c9d3efbb4e2f2adf94de780ec3fca5aee17cb6d7
+
 | ID       | Title                                                                                                                                                                                                                                                      | Status | Comment |
 | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------- |
 | T2990503 | Data from two different File source connectors are transferred to the Materialize Destination connector                                                                                                                                                    | Passed |         |
