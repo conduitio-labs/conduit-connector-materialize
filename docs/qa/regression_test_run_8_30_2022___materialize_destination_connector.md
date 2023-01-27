@@ -1,3 +1,10 @@
+**Regression Test Run 8/30/2022 - Materialize Destination connector**
+
+**branch:** https://github.com/conduitio-labs/conduit-connector-materialize/tree/main
+
+**commit:** d3cd3023f645eee4e23613fd114ba724498eb431
+
+
 | ID       | Title                                                                                                                                                                                                                                              | Status | Comment |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------- |
 | T2831638 | The data from the Snowflake source connector is transferred to the Materialize Destination connector                                                                                                                                               | Passed |         |
