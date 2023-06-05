@@ -8,7 +8,7 @@ require (
 	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
-	github.com/go-playground/validator/v10 v10.14.0
+	github.com/go-playground/validator/v10 v10.14.1
 	github.com/jackc/pgx/v4 v4.18.1
 	go.uber.org/multierr v1.9.0
 )
