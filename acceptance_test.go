@@ -139,7 +139,7 @@ func (d AcceptanceTestDriver) ReadFromDestination(t *testing.T, records []sdk.Re
 	return outRecords
 }
 
-func (d AcceptanceTestDriver) GenerateRecord(t *testing.T, operation sdk.Operation) sdk.Record {
+func (d AcceptanceTestDriver) GenerateRecord(_ *testing.T, _ sdk.Operation) sdk.Record {
 	id := gofakeit.Int32()
 
 	position := make([]byte, binary.MaxVarintLen64)

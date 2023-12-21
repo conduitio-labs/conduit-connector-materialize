@@ -48,7 +48,7 @@ type Querier interface {
 // based on the provided columnTypes.
 // For now it converts just TIME values.
 func ConvertStructureData(
-	ctx context.Context, columnTypes map[string]string, data sdk.StructuredData,
+	_ context.Context, columnTypes map[string]string, data sdk.StructuredData,
 ) (sdk.StructuredData, error) {
 	result := make(sdk.StructuredData, len(data))
 
