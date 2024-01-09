@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.1
 
 require (
-	github.com/brianvoe/gofakeit/v6 v6.26.3
+	github.com/brianvoe/gofakeit/v6 v6.26.4
 	github.com/conduitio/conduit-connector-sdk v0.8.0
 	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/go-playground/locales v0.14.1
