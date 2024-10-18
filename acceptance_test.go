@@ -25,6 +25,7 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/conduitio-labs/conduit-connector-materialize/config"
 	"github.com/conduitio-labs/conduit-connector-materialize/test"
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v4"
@@ -80,7 +81,7 @@ func TestAcceptance(t *testing.T) {
 	)
 }
 
-func (d AcceptanceTestDriver) ReadFromDestination(t *testing.T, records []sdk.Record) []sdk.Record {
+func (d AcceptanceTestDriver) ReadFromDestination(t *testing.T, records []opencdc.Record) []opencdc.Record {
 	type key struct {
 		ID int `json:"id"`
 	}
@@ -97,7 +98,7 @@ func (d AcceptanceTestDriver) ReadFromDestination(t *testing.T, records []sdk.Re
 		keys[i] = k.ID
 	}
 
-	var outRecords []sdk.Record
+	var outRecords []opencdc.Record
 	for _, key := range keys {
 		// make select one by one in order to keep the original order
 		sql, _, err := goqu.
@@ -114,22 +115,22 @@ func (d AcceptanceTestDriver) ReadFromDestination(t *testing.T, records []sdk.Re
 
 		row := testConn.QueryRow(context.Background(), sql)
 
-		var id, name = 0, ""
+		var id, name = int32(0), ""
 		if err := row.Scan(&id, &name); err != nil {
 			t.Fatalf("scan row: %v", err)
 
 			return nil
 		}
 
-		outRecords = append(outRecords, sdk.Record{
+		outRecords = append(outRecords, opencdc.Record{
 			Metadata:  nil,
-			Operation: sdk.OperationCreate,
-			Key: sdk.StructuredData(map[string]any{
-				"id": int32(id),
+			Operation: opencdc.OperationCreate,
+			Key: opencdc.StructuredData(map[string]any{
+				"id": id,
 			}),
-			Payload: sdk.Change{
-				After: sdk.StructuredData(map[string]any{
-					"id":   int32(id),
+			Payload: opencdc.Change{
+				After: opencdc.StructuredData(map[string]any{
+					"id":   id,
 					"name": name,
 				}),
 			},
@@ -139,24 +140,24 @@ func (d AcceptanceTestDriver) ReadFromDestination(t *testing.T, records []sdk.Re
 	return outRecords
 }
 
-func (d AcceptanceTestDriver) GenerateRecord(_ *testing.T, _ sdk.Operation) sdk.Record {
+func (d AcceptanceTestDriver) GenerateRecord(_ *testing.T, _ opencdc.Operation) opencdc.Record {
 	id := gofakeit.Int32()
 
 	position := make([]byte, binary.MaxVarintLen64)
 	_ = binary.PutVarint(position, int64(id))
 
-	metatada := make(sdk.Metadata)
+	metatada := make(opencdc.Metadata)
 	metatada.SetCreatedAt(gofakeit.Date())
 
-	return sdk.Record{
-		Position:  sdk.Position(position),
-		Operation: sdk.OperationCreate,
+	return opencdc.Record{
+		Position:  opencdc.Position(position),
+		Operation: opencdc.OperationCreate,
 		Metadata:  metatada,
-		Key: sdk.StructuredData(map[string]any{
+		Key: opencdc.StructuredData(map[string]any{
 			"id": id,
 		}),
-		Payload: sdk.Change{
-			After: sdk.StructuredData(map[string]any{
+		Payload: opencdc.Change{
+			After: opencdc.StructuredData(map[string]any{
 				"id":   id,
 				"name": gofakeit.FirstName(),
 			}),

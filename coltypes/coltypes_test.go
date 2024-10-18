@@ -19,7 +19,7 @@ import (
 	"reflect"
 	"testing"
 
-	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/conduitio/conduit-commons/opencdc"
 )
 
 func TestConvertStructureData(t *testing.T) {
@@ -27,13 +27,13 @@ func TestConvertStructureData(t *testing.T) {
 
 	type args struct {
 		columnTypes map[string]string
-		data        sdk.StructuredData
+		data        opencdc.StructuredData
 	}
 
 	tests := []struct {
 		name    string
 		args    args
-		want    sdk.StructuredData
+		want    opencdc.StructuredData
 		wantErr bool
 	}{
 		{
@@ -43,12 +43,12 @@ func TestConvertStructureData(t *testing.T) {
 					"id":         "integer",
 					"created_at": "time",
 				},
-				data: sdk.StructuredData{
+				data: opencdc.StructuredData{
 					"id":         1,
 					"created_at": "10:34:54",
 				},
 			},
-			want: sdk.StructuredData{
+			want: opencdc.StructuredData{
 				"id":         1,
 				"created_at": "10:34:54",
 			},
@@ -60,12 +60,12 @@ func TestConvertStructureData(t *testing.T) {
 					"id":         "integer",
 					"created_at": "time",
 				},
-				data: sdk.StructuredData{
+				data: opencdc.StructuredData{
 					"id":         1,
 					"created_at": "0000-01-01T11:12:00Z",
 				},
 			},
-			want: sdk.StructuredData{
+			want: opencdc.StructuredData{
 				"id":         1,
 				"created_at": "11:12:00",
 			},
@@ -77,12 +77,12 @@ func TestConvertStructureData(t *testing.T) {
 					"id":         "integer",
 					"created_at": "time",
 				},
-				data: sdk.StructuredData{
+				data: opencdc.StructuredData{
 					"id":         1,
 					"created_at": "11l12",
 				},
 			},
-			want:    sdk.StructuredData{},
+			want:    opencdc.StructuredData{},
 			wantErr: true,
 		},
 	}
