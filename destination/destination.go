@@ -22,6 +22,7 @@ import (
 
 	"github.com/conduitio-labs/conduit-connector-materialize/coltypes"
 	"github.com/conduitio-labs/conduit-connector-materialize/config"
+	cconfig "github.com/conduitio/conduit-commons/config"
 	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/doug-martin/goqu/v9"
@@ -48,28 +49,28 @@ func NewDestination() sdk.Destination {
 }
 
 // Parameters returns a map of named config.Parameters that describe how to configure the Destination.
-func (d *Destination) Parameters() config.Parameters {
-	return map[string]config.Parameter{
+func (d *Destination) Parameters() cconfig.Parameters {
+	return map[string]cconfig.Parameter{
 		config.KeyURL: {
 			Default:     "",
-			Required:    true,
 			Description: "The connection URL for Materialize instance.",
+			Validations: []cconfig.Validation{cconfig.ValidationRequired{}},
 		},
 		config.KeyTable: {
 			Default:     "",
-			Required:    true,
 			Description: "The table name of the table in Materialize that the connector should write to, by default.",
+			Validations: []cconfig.Validation{cconfig.ValidationRequired{}},
 		},
 		config.KeyKey: {
 			Default:     "",
-			Required:    true,
 			Description: "The column name used when updating and deleting records.",
+			Validations: []cconfig.Validation{cconfig.ValidationRequired{}},
 		},
 	}
 }
 
 // Configure parses and initializes the config.
-func (d *Destination) Configure(_ context.Context, cfg config.Config) error {
+func (d *Destination) Configure(_ context.Context, cfg cconfig.Config) error {
 	configuration, err := config.Parse(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to parse config: %w", err)

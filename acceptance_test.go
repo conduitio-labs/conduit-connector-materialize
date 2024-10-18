@@ -115,7 +115,7 @@ func (d AcceptanceTestDriver) ReadFromDestination(t *testing.T, records []opencd
 
 		row := testConn.QueryRow(context.Background(), sql)
 
-		var id, name = 0, ""
+		var id, name = int32(0), ""
 		if err := row.Scan(&id, &name); err != nil {
 			t.Fatalf("scan row: %v", err)
 
@@ -126,11 +126,11 @@ func (d AcceptanceTestDriver) ReadFromDestination(t *testing.T, records []opencd
 			Metadata:  nil,
 			Operation: opencdc.OperationCreate,
 			Key: opencdc.StructuredData(map[string]any{
-				"id": int32(id),
+				"id": id,
 			}),
 			Payload: opencdc.Change{
 				After: opencdc.StructuredData(map[string]any{
-					"id":   int32(id),
+					"id":   id,
 					"name": name,
 				}),
 			},
