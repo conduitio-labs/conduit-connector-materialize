@@ -22,6 +22,7 @@ import (
 
 	"github.com/conduitio-labs/conduit-connector-materialize/coltypes"
 	"github.com/conduitio-labs/conduit-connector-materialize/config"
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v4"
@@ -46,9 +47,9 @@ func NewDestination() sdk.Destination {
 	return sdk.DestinationWithMiddleware(&Destination{}, sdk.DefaultDestinationMiddleware()...)
 }
 
-// Parameters returns a map of named sdk.Parameters that describe how to configure the Destination.
-func (d *Destination) Parameters() map[string]sdk.Parameter {
-	return map[string]sdk.Parameter{
+// Parameters returns a map of named config.Parameters that describe how to configure the Destination.
+func (d *Destination) Parameters() config.Parameters {
+	return map[string]config.Parameter{
 		config.KeyURL: {
 			Default:     "",
 			Required:    true,
@@ -68,7 +69,7 @@ func (d *Destination) Parameters() map[string]sdk.Parameter {
 }
 
 // Configure parses and initializes the config.
-func (d *Destination) Configure(_ context.Context, cfg map[string]string) error {
+func (d *Destination) Configure(_ context.Context, cfg config.Config) error {
 	configuration, err := config.Parse(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to parse config: %w", err)
@@ -97,7 +98,7 @@ func (d *Destination) Open(ctx context.Context) error {
 }
 
 // Write writes a record into a Destination.
-func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, error) {
+func (d *Destination) Write(ctx context.Context, records []opencdc.Record) (int, error) {
 	for i, record := range records {
 		err := sdk.Util.Destination.Route(ctx, record,
 			d.insert,
@@ -114,7 +115,7 @@ func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, err
 }
 
 // insert is an append-only operation that doesn't care about keys.
-func (d *Destination) insert(ctx context.Context, record sdk.Record) error {
+func (d *Destination) insert(ctx context.Context, record opencdc.Record) error {
 	tableName := d.getTableName(record.Metadata)
 
 	payload, err := d.structurizeData(record.Payload.After)
@@ -155,7 +156,7 @@ func (d *Destination) insert(ctx context.Context, record sdk.Record) error {
 //
 // Note that Materialize doesn't support primary keys and unique constraints,
 // so if there are duplicate keys in Materialize the connector will update all of them.
-func (d *Destination) update(ctx context.Context, record sdk.Record) error {
+func (d *Destination) update(ctx context.Context, record opencdc.Record) error {
 	tableName := d.getTableName(record.Metadata)
 
 	key, err := d.structurizeData(record.Key)
@@ -208,12 +209,12 @@ func (d *Destination) update(ctx context.Context, record sdk.Record) error {
 	return nil
 }
 
-// delete deletes records by a key. First it looks in the sdk.Record.Key,
+// delete deletes records by a key. First it looks in the opencdc.Record.Key,
 // if it doesn't find a key there it will use the default configured value for a key.
 //
 // Note that Materialize doesn't support primary keys and unique constraints,
 // so if there are duplicate keys in Materialize the connector will delete them all.
-func (d *Destination) delete(ctx context.Context, record sdk.Record) error {
+func (d *Destination) delete(ctx context.Context, record opencdc.Record) error {
 	tableName := d.getTableName(record.Metadata)
 
 	key, err := d.structurizeData(record.Key)
@@ -249,7 +250,7 @@ func (d *Destination) delete(ctx context.Context, record sdk.Record) error {
 
 // extractColumnsAndValues turns the payload into slices of
 // columns and values for upserting into Materialize.
-func (d *Destination) extractColumnsAndValues(payload sdk.StructuredData) ([]any, []any) {
+func (d *Destination) extractColumnsAndValues(payload opencdc.StructuredData) ([]any, []any) {
 	var colArgs, valArgs []any
 
 	for field, value := range payload {
@@ -260,19 +261,19 @@ func (d *Destination) extractColumnsAndValues(payload sdk.StructuredData) ([]any
 	return colArgs, valArgs
 }
 
-// structurizeData converts sdk.Data to sdk.StructuredData.
-func (d *Destination) structurizeData(data sdk.Data) (sdk.StructuredData, error) {
+// structurizeData converts opencdc.Data to opencdc.StructuredData.
+func (d *Destination) structurizeData(data opencdc.Data) (opencdc.StructuredData, error) {
 	if data == nil || len(data.Bytes()) == 0 {
 		return nil, nil
 	}
 
-	structuredData := make(sdk.StructuredData)
+	structuredData := make(opencdc.StructuredData)
 	err := json.Unmarshal(data.Bytes(), &structuredData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal data into structured data: %w", err)
 	}
 
-	structuredDataLower := make(sdk.StructuredData)
+	structuredDataLower := make(opencdc.StructuredData)
 	for key, value := range structuredData {
 		if parsedValue, ok := value.(map[string]any); ok {
 			valueJSON, err := json.Marshal(parsedValue)
@@ -304,7 +305,7 @@ func (d *Destination) getTableName(metadata map[string]string) string {
 
 // getKeyColumnName returns either the first key within the Key structured data
 // or the default key configured value for key.
-func (d *Destination) getKeyColumnName(key sdk.StructuredData) (string, error) {
+func (d *Destination) getKeyColumnName(key opencdc.StructuredData) (string, error) {
 	if len(key) > 1 {
 		return "", ErrCompositeKeysNotSupported
 	}

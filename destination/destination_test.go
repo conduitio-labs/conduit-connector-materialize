@@ -23,6 +23,7 @@ import (
 
 	"github.com/conduitio-labs/conduit-connector-materialize/config"
 	"github.com/conduitio-labs/conduit-connector-materialize/test"
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/jackc/pgx/v4"
 )
@@ -96,7 +97,7 @@ func TestDestination_Write(t *testing.T) {
 	}
 	type args struct {
 		ctx    context.Context
-		record sdk.Record
+		record opencdc.Record
 	}
 	tests := []struct {
 		name    string
@@ -116,11 +117,11 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationCreate,
-					Payload: sdk.Change{
-						After: sdk.StructuredData{
+				record: opencdc.Record{
+					Position:  opencdc.Position("999"),
+					Operation: opencdc.OperationCreate,
+					Payload: opencdc.Change{
+						After: opencdc.StructuredData{
 							"id":   1,
 							"name": "Anon",
 						},
@@ -139,14 +140,14 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationCreate,
+				record: opencdc.Record{
+					Position:  opencdc.Position("999"),
+					Operation: opencdc.OperationCreate,
 					Metadata: map[string]string{
 						metadataTable: "users",
 					},
-					Payload: sdk.Change{
-						After: sdk.StructuredData{
+					Payload: opencdc.Change{
+						After: opencdc.StructuredData{
 							"id":   2,
 							"name": "Anon",
 						},
@@ -166,11 +167,11 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationCreate,
-					Payload: sdk.Change{
-						After: sdk.StructuredData{
+				record: opencdc.Record{
+					Position:  opencdc.Position("999"),
+					Operation: opencdc.OperationCreate,
+					Payload: opencdc.Change{
+						After: opencdc.StructuredData{
 							"id":   3,
 							"name": "Anon",
 						},
@@ -190,11 +191,11 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationCreate,
-					Payload: sdk.Change{
-						After: sdk.StructuredData{
+				record: opencdc.Record{
+					Position:  opencdc.Position("999"),
+					Operation: opencdc.OperationCreate,
+					Payload: opencdc.Change{
+						After: opencdc.StructuredData{
 							"ID":   3,
 							"NAME": "Anon",
 						},
@@ -214,10 +215,10 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position: sdk.Position("999"),
-					Payload: sdk.Change{
-						After: sdk.StructuredData{
+				record: opencdc.Record{
+					Position: opencdc.Position("999"),
+					Payload: opencdc.Change{
+						After: opencdc.StructuredData{
 							"id":   4,
 							"name": "Anon",
 						},
@@ -236,11 +237,11 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationCreate,
-					Payload: sdk.Change{
-						After: sdk.StructuredData{
+				record: opencdc.Record{
+					Position:  opencdc.Position("999"),
+					Operation: opencdc.OperationCreate,
+					Payload: opencdc.Change{
+						After: opencdc.StructuredData{
 							"id":   5,
 							"name": "Anon",
 						},
@@ -260,9 +261,9 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationCreate,
+				record: opencdc.Record{
+					Position:  opencdc.Position("999"),
+					Operation: opencdc.OperationCreate,
 				},
 			},
 			wantErr: true,
@@ -278,11 +279,11 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationCreate,
-					Payload: sdk.Change{
-						After: sdk.RawData([]byte("id:1,name:anon")),
+				record: opencdc.Record{
+					Position:  opencdc.Position("999"),
+					Operation: opencdc.OperationCreate,
+					Payload: opencdc.Change{
+						After: opencdc.RawData([]byte("id:1,name:anon")),
 					},
 				},
 			},
@@ -299,10 +300,10 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationDelete,
-					Key: sdk.StructuredData{
+				record: opencdc.Record{
+					Position:  opencdc.Position("999"),
+					Operation: opencdc.OperationDelete,
+					Key: opencdc.StructuredData{
 						"id": 3,
 					},
 				},
@@ -321,9 +322,9 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationDelete,
+				record: opencdc.Record{
+					Position:  opencdc.Position("999"),
+					Operation: opencdc.OperationDelete,
 				},
 			},
 			wantErr: true,
@@ -339,10 +340,10 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationDelete,
-					Key: sdk.StructuredData{
+				record: opencdc.Record{
+					Position:  opencdc.Position("999"),
+					Operation: opencdc.OperationDelete,
+					Key: opencdc.StructuredData{
 						"unknown": 3,
 					},
 				},
@@ -361,14 +362,14 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationUpdate,
-					Key: sdk.StructuredData{
+				record: opencdc.Record{
+					Position:  opencdc.Position("999"),
+					Operation: opencdc.OperationUpdate,
+					Key: opencdc.StructuredData{
 						"id": 2,
 					},
-					Payload: sdk.Change{
-						After: sdk.StructuredData{
+					Payload: opencdc.Change{
+						After: opencdc.StructuredData{
 							"name": "Alex",
 						},
 					},
@@ -388,10 +389,10 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationUpdate,
-					Key: sdk.StructuredData{
+				record: opencdc.Record{
+					Position:  opencdc.Position("999"),
+					Operation: opencdc.OperationUpdate,
+					Key: opencdc.StructuredData{
 						"id": 4,
 					},
 				},
@@ -409,11 +410,11 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationCreate,
-					Payload: sdk.Change{
-						After: sdk.StructuredData{
+				record: opencdc.Record{
+					Position:  opencdc.Position("999"),
+					Operation: opencdc.OperationCreate,
+					Payload: opencdc.Change{
+						After: opencdc.StructuredData{
 							"UNKNOWN": 3,
 						},
 					},
@@ -432,11 +433,11 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationCreate,
-					Payload: sdk.Change{
-						After: sdk.StructuredData{
+				record: opencdc.Record{
+					Position:  opencdc.Position("999"),
+					Operation: opencdc.OperationCreate,
+					Payload: opencdc.Change{
+						After: opencdc.StructuredData{
 							"id":     7,
 							"name":   "alien",
 							"skills": map[string]any{"read": 2, "write": 3},
@@ -457,11 +458,11 @@ func TestDestination_Write(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				record: sdk.Record{
-					Position:  sdk.Position("999"),
-					Operation: sdk.OperationCreate,
-					Payload: sdk.Change{
-						After: sdk.StructuredData{
+				record: opencdc.Record{
+					Position:  opencdc.Position("999"),
+					Operation: opencdc.OperationCreate,
+					Payload: opencdc.Change{
+						After: opencdc.StructuredData{
 							"id":   7,
 							"name": "alien",
 							"skills": map[string]any{
@@ -484,7 +485,7 @@ func TestDestination_Write(t *testing.T) {
 				conn:                     tt.fields.conn,
 				config:                   tt.fields.config,
 			}
-			if _, err := d.Write(tt.args.ctx, []sdk.Record{tt.args.record}); (err != nil) != tt.wantErr {
+			if _, err := d.Write(tt.args.ctx, []opencdc.Record{tt.args.record}); (err != nil) != tt.wantErr {
 				t.Errorf("Destination.Write() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

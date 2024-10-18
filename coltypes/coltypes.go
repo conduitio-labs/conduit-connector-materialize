@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/conduitio/conduit-commons/opencdc"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -48,9 +48,9 @@ type Querier interface {
 // based on the provided columnTypes.
 // For now it converts just TIME values.
 func ConvertStructureData(
-	_ context.Context, columnTypes map[string]string, data sdk.StructuredData,
-) (sdk.StructuredData, error) {
-	result := make(sdk.StructuredData, len(data))
+	_ context.Context, columnTypes map[string]string, data opencdc.StructuredData,
+) (opencdc.StructuredData, error) {
+	result := make(opencdc.StructuredData, len(data))
 
 	for key, value := range data {
 		if value == nil {
@@ -63,7 +63,7 @@ func ConvertStructureData(
 		case timeDataType:
 			parsedValue, err := parseTime(value)
 			if err != nil {
-				return sdk.StructuredData{}, fmt.Errorf("parse time: %w", err)
+				return opencdc.StructuredData{}, fmt.Errorf("parse time: %w", err)
 			}
 
 			result[key] = parsedValue
