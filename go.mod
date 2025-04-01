@@ -1,6 +1,6 @@
 module github.com/conduitio-labs/conduit-connector-materialize
 
-go 1.24.1
+go 1.24.2
 
 require (
 	github.com/brianvoe/gofakeit/v6 v6.28.0
